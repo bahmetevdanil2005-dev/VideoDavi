@@ -208,52 +208,23 @@ function drawBg(c,w,h,type,t,pal){
 function wrap(c,str,maxW){const ws=String(str).split(/\s+/).filter(Boolean),ls=[];let cur='';ws.forEach(x=>{const nx=cur?cur+' '+x:x;if(c.measureText(nx).width>maxW&&cur){ls.push(cur);cur=x}else cur=nx});if(cur)ls.push(cur);return ls}
 let BUSYBG=false,LIGHTP=false;const BUSY=['plasma','matrix','aurora','stars','speed','rays','waves','tunnelh','tunnelv','noise','checker','diag','particles','scan'];
 function drawText(c,w,h,L,lt,dur,pal){
-  const fx=L.fx||'pop',col=L.color||pal[2];
-  const raw=String(L.text||'');
-  const acc=new Set();let clean='',inA=false;
-  for(const q of raw){if(q==='*'){inA=!inA;continue}if(inA&&q!==' ')acc.add(clean.replace(/\\s/g,'').length);clean+=q}
-  if(L.upper!==false)clean=clean.toLocaleUpperCase('ru-RU');
-  const maxW=w*.96,maxH=h*.68,minDim=Math.min(w,h);
-  let size=Math.min((L.size||.085)*w*3.0,h*.34,minDim*.36);
-  c.save();c.textAlign='left';c.textBaseline='middle';c.font='900 '+size+'px '+FONT;
-  let lines=wrap(c,clean,maxW);
-  while(lines.length>3&&size>minDim*.10){size*=.9;c.font='900 '+size+'px '+FONT;lines=wrap(c,clean,maxW)}
-  if(lines.length>3){while(lines.length>3&&size>minDim*.085){size*=.92;c.font='900 '+size+'px '+FONT;lines=wrap(c,clean,maxW)}if(lines.length>3)lines=lines.slice(0,2).concat([lines.slice(2).join(' ')]);}
-  const lineH=size*1.12,blockH=lines.length*lineH;
-  const widths=lines.map(x=>Math.max(1,c.measureText(x).width));
-  const widest=Math.max(...widths),scaleX=Math.min(1,maxW/widest);
-  const pad=size*.2,blockW=widest*scaleX+pad*2;
-  const cy=clamp(L.y==null?.5:L.y,.12,.88)*h,top=cy-blockH/2;
-  const fade=clamp((dur-lt)/.3),n=clean.replace(/\\s/g,'').length||1,nw=clean.trim().split(/\\s+/).filter(Boolean).length||1;
-  const ent=fx==='type'?clamp(lt/(.05*n+.2)):fx==='words'?clamp(lt/(.28*nw+.3)):clamp(lt/.7);
-  
-  let globalIndex=0,wordIndex=0;
-  lines.forEach((line,row)=>{
-    const lineW=widths[row],xStart=-lineW/2;
-    const pass=(dx,col2,al,hl)=>{
-      let x=xStart,k=0;
-      c.save();c.translate(w/2+dx,top+lineH*(row+.5));c.scale(scaleX,1);
-      if(hl){c.fillStyle=pal[1];c.globalAlpha=fade*al*eo(ent);c.fillRect(xStart-pad*.35,-size*.62,lineW*eo(ent)+pad*.7,size*1.24)}
-      if(BUSYBG&&!hl){c.shadowColor=LIGHTP?'rgba(255,255,255,.7)':'rgba(0,0,0,.75)';c.shadowBlur=size*.16}
-      if(fx==='mask'){c.beginPath();c.rect(xStart-size*.1,-size,lineW*eo(ent)+size*.2,size*2);c.clip()}
-      for(const ch of line){
-        const cw=c.measureText(ch).width;
-        if(ch===' '){wordIndex++;x+=cw;continue}
-        let aa=1,sc=1,sx=1,sy=1,dy=0,dx2=0,rot=0,cc=null;
-        // Static text mode: all characters remain visible; no entrance, fade, or per-letter motion.
-        c.save();c.globalAlpha=1;c.translate(x+cw/2,0);
-        c.fillStyle=cc&&!hl?cc:hl?pal[0]:acc.has(globalIndex)&&col2===col?pal[1]:col2;
-        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.075;c.strokeStyle='rgba(0,0,0,.72)';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=size*.12;c.globalAlpha=.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=1;c.shadowBlur=0}
-        c.fillText(ch,-cw/2,0);c.restore();x+=cw;globalIndex++;k++;
-      }
-      c.restore();
-    };
-    if(false){pass(-size*.07,pal[1],.65,false);pass(size*.07,'#00e5ff',.55,false)}
-    pass(0,col,1,!!L.hl);
-  });
-  c.globalAlpha=1;c.restore();
+  const raw=String(L.text||'').replace(/\*/g,'').trim();
+  if(!raw)return;
+  const words=raw.split(/\s+/).filter(Boolean);
+  if(!words.length)return;
+  // Predictable word-by-word captions. One complete word at a time, no letter animation.
+  const usable=Math.max(1,dur-.25),per=Math.max(.32,usable/words.length);
+  const idx=Math.min(words.length-1,Math.floor(Math.max(0,lt)/per));
+  const word=String(words[idx]||'').toLocaleUpperCase('ru-RU');
+  const maxW=w*.88,maxH=h*.22,minDim=Math.min(w,h);
+  let size=Math.min((L.size||.085)*w*2.7,h*.2,minDim*.25);
+  c.save();c.textAlign='center';c.textBaseline='middle';c.font='900 '+size+'px '+FONT;
+  while(c.measureText(word).width>maxW&&size>minDim*.07){size*=.9;c.font='900 '+size+'px '+FONT}
+  const x=w/2,y=clamp(L.y==null?.72:L.y,.18,.84)*h;
+  c.lineJoin='round';c.lineWidth=Math.max(3,size*.085);c.strokeStyle='rgba(0,0,0,.88)';c.shadowColor='rgba(0,0,0,.55)';c.shadowBlur=size*.16;
+  c.strokeText(word,x,y);c.shadowBlur=0;c.fillStyle=L.color||pal[2];c.fillText(word,x,y);
+  c.restore();
 }
-
 function drawCounter(c,w,h,L,lt,dur,pal){
   const v=Math.round((L.to||100)*eo(clamp(lt/1.4)));
   drawText(c,w,h,{text:v.toLocaleString('ru-RU')+(L.suffix||''),upper:false,y:L.y||.6,size:L.size||.16,fx:'none',color:pal[1]},Math.max(lt,.7),dur,pal);
@@ -632,6 +603,12 @@ const PLANSYS=`Ты редактор образовательных коротк
 {"title":"название темы","audience":"кто смотрит","tone":"тон","structure":"story|list|qa|ba","music":"${Object.keys(MUS).join('|')}","hook":"содержательная разговорная первая фраза","pain":"какой вопрос или непонимание зрителя разбираем","solution":"главное объяснение темы","benefits":[{"icon":"${Object.keys(ICO).join('|')}","text":"конкретный аспект темы или пример"}],"proof":null,"cta":["короткий содержательный вывод"],"visual":"визуальные метафоры, которые прямо объясняют тему"}
 Сформируй 3–5 содержательных пунктов. Не придумывай цифры, статистику, исследования или гарантии. Не придумывай бренд и не делай рекламный тон. Если пользователь указал рекламодателя, оставь его только для отдельного финального блока после полного объяснения темы. Только русский язык.`;
 const LIBHINT=`
+КИНОРЕЖИССУРА И ВИЗУАЛЬНАЯ КОНКРЕТИКА:
+- Не ограничивай сцену одним текстовым слоем и одной иконкой. Для каждой сцены подбирай 2–4 визуально согласованных слоя, если это помогает смыслу: shape, chart, icon, three, char, counter.
+- Выбирай элементы по ключевым словам и предметам темы, а не случайно. Монтаж/видеомонтаж: композиция из видеокадров, таймлайн с несколькими дорожками, плёнка/перфорация, камера, кнопка записи REC, звуковая волна, курсор/окно редактора и панели интерфейса (не копируй точный интерфейс бренда, если нет готового ассета). ИИ: нейросеть/узлы/связи/чип/потоки данных. Финансы: график, монеты, показатели. Путешествия: карта, маршрут, компас.
+- Создавай понятную композицию: главный объект крупный, дополнительные элементы меньше и по краям; не накладывай объекты друг на друга и не закрывай ключевые слова. Используй разные позиции x/y и размеры. Не ставь все элементы внизу.
+- Текст — короткая субтитровая реплика. Не растягивай текст на весь кадр; располагай его в свободной безопасной области, не поверх главного объекта. Один текстовый слой на сцену.
+- Если библиотека не содержит точного объекта, собери его из нескольких простых shape/icon/chart слоёв, а не подставляй случайную одиночную иконку.
 Подсказки по библиотеке (выбирай осмысленно и не повторяй подряд):
 - Фоны: matrix, scan, tunnelh, tunnelv, noise для техно и безопасности; stars, aurora, waves для мечты, путешествий, кино; plasma, rays, dotgrid для весёлого и яркого; grid, particles, gradient для нейтрального и делового; speed (гиперпрыжок) для динамики и хука.
 - Текст: glitch, shake, drop, zoomin для резких заявлений; mask, rise, cascade, float для спокойных; jelly, bounce, elastic, wave для дружелюбных.
@@ -713,7 +690,7 @@ function frame(){
   drawScene(cx,w,h,sc,clamp(t-sc.start,0,sc.dur),S.pal);post(cx,w,h,t,S.pal);
 }
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
-function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';const unlock=()=>{if(!playing)return;lastSoundScene=sceneIndexAt(t)};try{const ready=ensureAudio();if(AC&&AC.state==='suspended')AC.resume().then(unlock).catch(e=>say('Звук заблокирован браузером: '+e.message,1));else Promise.resolve(ready).then(unlock).catch(e=>say('Не удалось включить звук: '+e.message,1))}catch(e){say('Не удалось включить звук: '+e.message,1)}}
+function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';try{ensureAudio().then(()=>{if(AC.state==='suspended')return AC.resume()}).then(()=>{if(playing){lastSoundScene=sceneIndexAt(t);say('Звук переходов включён',0)}}).catch(e=>say('Не удалось включить звук: '+e.message,1))}catch(e){say('Не удалось включить звук: '+e.message,1)}}
 function pause(){playing=false;lastSoundScene=-1;stopAudio();$('#pp').textContent='Играть'}
 function loop(now){
   if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running')transitionSound(si);else ensureAudio().then(()=>transitionSound(si)).catch(e=>say('Ошибка звука перехода: '+e.message,1))}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
@@ -833,7 +810,7 @@ function descFor(){
   return `ТЕМА РОЛИКА: ${topic}
 Формат ${ui.format}, длительность около ${ui.dur} секунд, стиль ${ui.style}. Тон: ${({auto:'естественный и ясный',bold:'энергичный, но содержательный',serious:'серьёзный и понятный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный, но не пафосный'})[ui.tone]}. Структура: ${({auto:'последовательное объяснение',story:'объяснение через историю',list:'последовательные пункты с пояснением',qa:'вопрос и подробный ответ',ba:'сравнение до и после'})[ui.arc]}.
 
-ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать короткую законченную фразу на 5–9 слов, которую можно произнести вслух и которая помещается в одну строку. Основная реплика визуально выделяется КАПСОМ; дополнительные подписи и числа — обычным регистром. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
+ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать короткую законченную разговорную реплику на 3–7 слов. Разбей её на отдельные слова: плеер будет показывать их последовательно с равномерным темпом. Не создавай длинные абзацы. Основная реплика визуально выделяется КАПСОМ; дополнительные подписи и числа — обычным регистром. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
 
 ${adRule}`;
 }
