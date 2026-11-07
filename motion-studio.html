@@ -819,7 +819,7 @@ async function viaWorker(isEdit){
   const an=$('#adn').value.trim(),ad=an?{name:an,pitch:$('#adp').value.trim(),label:$('#adl').checked}:null;
   const base=cfg.worker.replace(/\/+$/,'');
   const body=isEdit?{scenario:{title:S.title,music:S.music,scenes:S.scenes.map(s=>({dur:+s.dur.toFixed(1),bg:s.bg,trans:s.trans,sfx:s.sfx,layers:s.layers}))},instruction:$('#edit').value.trim(),catalog}
-    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:ui.style,ad,catalog,hint:LIBHINT};
+    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:ui.style,ad:ad?{...ad,placement:'только отдельная последняя сцена после полного содержательного объяснения темы; последние 15–20% хронометража'}:null,catalog,hint:LIBHINT+'\nОбязательный редакционный принцип: сначала полноценный разговорный образовательный сценарий с логическим развитием темы и конкретными примерами; не использовать рекламные заголовки вместо объяснения. Если рекламодатель задан — реклама только отдельным финальным блоком в последних 15–20% после вывода; до этого никаких упоминаний бренда. Если рекламодатель не задан — рекламы нет. Каждая сцена содержит естественную произносимую реплику. Визуальные слои строго иллюстрируют смысл реплики; графики и туннели не добавлять ради декора.'};
   say(isEdit?'Режиссёр вносит правку…':'Режиссёр пишет хук, удержание и связку с рекламой…');
   const r=await fetch(base+(isEdit?'/edit':'/director'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||('ошибка '+r.status));
