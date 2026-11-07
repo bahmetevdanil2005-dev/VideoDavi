@@ -211,12 +211,12 @@ function drawText(c,w,h,L,lt,dur,pal){
   const acc=new Set();let clean='',inA=false;
   for(const q of raw){if(q==='*'){inA=!inA;continue}if(inA&&q!==' ')acc.add(clean.replace(/\\s/g,'').length);clean+=q}
   if(L.upper!==false)clean=clean.toLocaleUpperCase('ru-RU');
-  const maxW=w*.90,maxH=h*.42,minDim=Math.min(w,h);
-  let size=Math.min((L.size||.085)*w*1.65,h*.22,minDim*.24);
+  const maxW=w*.96,maxH=h*.68,minDim=Math.min(w,h);
+  let size=Math.min((L.size||.085)*w*3.0,h*.34,minDim*.36);
   c.save();c.textAlign='left';c.textBaseline='middle';c.font='900 '+size+'px '+FONT;
   let lines=wrap(c,clean,maxW);
-  while(lines.length>3&&size>minDim*.075){size*=.9;c.font='900 '+size+'px '+FONT;lines=wrap(c,clean,maxW)}
-  if(lines.length>3){lines=lines.slice(0,2).concat([lines.slice(2).join(' ')]);while(c.measureText(lines[2]).width>maxW&&size>minDim*.06){size*=.94;c.font='900 '+size+'px '+FONT}}
+  while(lines.length>3&&size>minDim*.10){size*=.9;c.font='900 '+size+'px '+FONT;lines=wrap(c,clean,maxW)}
+  if(lines.length>3){while(lines.length>3&&size>minDim*.085){size*=.92;c.font='900 '+size+'px '+FONT;lines=wrap(c,clean,maxW)}if(lines.length>3)lines=lines.slice(0,2).concat([lines.slice(2).join(' ')]);}
   const lineH=size*1.12,blockH=lines.length*lineH;
   const widths=lines.map(x=>Math.max(1,c.measureText(x).width));
   const widest=Math.max(...widths),scaleX=Math.min(1,maxW/widest);
@@ -224,7 +224,7 @@ function drawText(c,w,h,L,lt,dur,pal){
   const cy=clamp(L.y==null?.5:L.y,.12,.88)*h,top=cy-blockH/2;
   const fade=clamp((dur-lt)/.3),n=clean.replace(/\\s/g,'').length||1,nw=clean.trim().split(/\\s+/).filter(Boolean).length||1;
   const ent=fx==='type'?clamp(lt/(.05*n+.2)):fx==='words'?clamp(lt/(.28*nw+.3)):clamp(lt/.7);
-  if(!L.hl){c.save();c.globalAlpha=.48*fade;c.fillStyle='#05070b';c.beginPath();if(c.roundRect)c.roundRect((w-blockW)/2,top-pad,blockW,blockH+pad*2,size*.16);else c.rect((w-blockW)/2,top-pad,blockW,blockH+pad*2);c.fill();c.restore()}
+  
   let globalIndex=0,wordIndex=0;
   lines.forEach((line,row)=>{
     const lineW=widths[row],xStart=-lineW/2;
@@ -239,14 +239,14 @@ function drawText(c,w,h,L,lt,dur,pal){
         if(ch===' '){wordIndex++;x+=cw;continue}
         let aa=1,sc=1,sx=1,sy=1,dy=0,dx2=0,rot=0,cc=null;
         if(fx==='type')aa=globalIndex<ent*n?1:0;
-        else if(fx==='words'){const q=clamp(ent*nw-wordIndex);aa=q>0?1:0;sc=ob(q)}
+        else if(fx==='words'){const q=clamp(ent*nw-wordIndex);const cq=clamp(q*1.7-(k/Math.max(1,line.length))*.55);aa=cq>0?1:0;sc=ob(cq);sx=.35+.85*eo(cq);sy=.78+.22*eo(cq);dy=(1-eo(cq))*-size*.22}
         else if(fx==='pop'){aa=clamp(ent*2);sc=ob(ent)}
         else if(fx==='wave'){aa=clamp(ent*2-globalIndex/n);dy=Math.sin(lt*4+globalIndex*.5)*size*.12}
         else if(fx==='glitch'){aa=ent>0?1:0}
         else if(FXE[fx]){const z=FXE[fx](globalIndex,n,wordIndex,nw,ent,lt,size);aa=z.a??1;sc=z.sc??1;sx=z.sx??sc;sy=z.sy??sc;dy=z.dy||0;dx2=z.dx||0;rot=z.rot||0;cc=z.col||null}
         c.save();c.globalAlpha=aa*fade*al;c.translate(x+cw/2+dx2,dy);c.rotate(rot);c.scale(Math.max(sx,.001),Math.max(sy,.001));
         c.fillStyle=cc&&!hl?cc:hl?pal[0]:acc.has(globalIndex)&&col2===col?pal[1]:col2;
-        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.1;c.strokeStyle=pal[0];c.globalAlpha=aa*fade*.68;c.strokeText(ch,-cw/2,0);c.globalAlpha=aa*fade}
+        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.075;c.strokeStyle='rgba(0,0,0,.72)';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=size*.12;c.globalAlpha=aa*fade*.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=aa*fade;c.shadowBlur=0}
         c.fillText(ch,-cw/2,0);c.restore();x+=cw;globalIndex++;k++;
       }
       c.restore();
@@ -608,11 +608,11 @@ const SYS=`Ты автор сценариев коротких образова�
 - Не подменяй объяснение словами «быстрое соединение», «новый уровень», «будущее уже здесь», «технологии меняют всё» и подобными общими фразами.
 - Развивай одну мысль последовательно: зацепка → что это значит → как это работает → конкретные примеры → возможности и ограничения/последствия → вывод.
 - Каждая сцена должна продолжать предыдущую. Не делай случайный набор несвязанных визуальных вставок.
-- Текст каждого слоя type=text — это реплика, которую можно естественно произнести вслух. Обычно 5–9 слов, цельная короткая мысль, чтобы она красиво помещалась в одну строку. Не вставляй переносы строк. Визуальный рендер автоматически делает основной текст КАПСОМ; не нужно писать его капсом в JSON.
+- Текст каждого слоя type=text — это реплика, которую можно естественно произнести вслух. Обычно 3–7 слов; одна сцена раскрывает одну короткую мысль. Не пытайся любой ценой уместить всё в одну строку: допускай 1–3 большие строки с визуально сильной композицией. Визуальный рендер автоматически делает основной текст КАПСОМ; не нужно писать его капсом в JSON.
 - На 30 секунд планируй 6–8 содержательных сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Учитывай время чтения: не мельчи текст и не ускоряй смену сцен ради эффектности.
 - Визуальные элементы должны иллюстрировать именно смысл текущей реплики. Не вставляй туннели, графики, лесенки, 3D-объекты и маскотов просто для заполнения сцены. График используй только когда он действительно помогает объяснить данные или сравнение.
 - Не выдумывай статистику, исследования, проценты, гарантии и факты. Используй числа только если они есть в брифе или явно обозначай пример как условный.
-- Основная реплика — главный типографический акцент кадра: короткая, выразительная, легко читается с первого взгляда и помещается в одну строку. Для отдельных акцентных слов выбирай выразительные эффекты букв (stretch, elastic, squash, wave, rise), но не анимируй каждую сцену одинаково. Дополнительные подписи и числа оставляй в обычном регистре.
+- Основная реплика — главный типографический акцент кадра: крупная кинетическая типографика почти на всю площадь экрана. Используй fx=words или cascade для постепенного появления слов и букв, stretch/elastic/rise для выразительного движения; слова должны открываться последовательно, а не появляться целым неподвижным блоком. Не помещай основной текст в маленькую плашку. Компонуй в 1–3 крупных строки, подстраивай масштаб под 9:16, 16:9 и 1:1. Для отдельных акцентных слов выбирай выразительные эффекты букв (stretch, elastic, squash, wave, rise), но не анимируй каждую сцену одинаково. Дополнительные подписи и числа оставляй в обычном регистре.
 - Тон — живой, ясный, уверенный, без канцелярита и искусственного рекламного пафоса. Только русский язык.
 
 РЕКЛАМА — ОТДЕЛЬНЫЙ ФИНАЛЬНЫЙ БЛОК:
