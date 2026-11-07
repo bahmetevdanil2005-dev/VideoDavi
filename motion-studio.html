@@ -678,15 +678,17 @@ async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return n
 
 /* ================= AUDIO ================= */
 let AC,DEST,nodes=[];
-function ensureAudio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();DEST=AC.createMediaStreamDestination()}if(AC.state==='suspended'&&!AC.startRendering)AC.resume()}
+function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination()}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
 function stopAudio(){nodes.forEach(o=>{try{o.stop()}catch(e){}});nodes=[]}
 function music(from){
-  stopAudio();if(!cfg.mus||!S)return;ensureAudio();
-  const g=AC.createGain();g.gain.value=.22;g.connect(AC.destination);g.connect(DEST);
-  const M=MUS[(S&&S.music)||cfg.music]||MUS.energetic,b=60/M.bpm,t0=AC.currentTime+.05,bass=M.bass;
+  stopAudio();if(!S)return;ensureAudio();
+  const t0=AC.currentTime+.08;
+  let g=null;
+  if(cfg.mus){g=AC.createGain();g.gain.value=.16;g.connect(AC.destination);g.connect(DEST);}
+  const M=MUS[(S&&S.music)||cfg.music]||MUS.energetic,b=60/M.bpm,bass=M.bass;
   const tone=(at,type,f0,f1,len,vol)=>{const o=AC.createOscillator(),e=AC.createGain();o.type=type;o.frequency.setValueAtTime(f0,at);o.frequency.exponentialRampToValueAtTime(f1,at+len);e.gain.setValueAtTime(vol,at);e.gain.exponentialRampToValueAtTime(.001,at+len);o.connect(e);e.connect(g);o.start(at);o.stop(at+len+.02);nodes.push(o)};
-  for(let i=Math.ceil(from/b);i*b<S.dur;i++){const at=t0+i*b-from;if(M.kick)tone(at,'sine',150,45,.18,1);if(M.hat)tone(at+b/2,'square',7000,6000,.03,.12);if(i%2===0)tone(at,M.w,bass[(i>>1)%4],bass[(i>>1)%4],b*1.8,.35);if(M.arp){const f=bass[(i>>1)%4]*4*[1,1.25,1.5,2][i%4];tone(at,'triangle',f,f,b*.9,.18)}}
-  S.scenes.forEach(sc=>{if(sc.start>=from-.01)tone(t0+sc.start-from,'sawtooth',2200,120,.35,.5);(sc.sfx||[]).forEach(x=>{if(sc.start+x.at>=from)sfx(x.id,t0+sc.start+x.at-from,g)})});
+  if(g){for(let i=Math.ceil(from/b);i*b<S.dur;i++){const at=t0+i*b-from;if(M.kick)tone(at,'sine',150,45,.18,.55);if(M.hat)tone(at+b/2,'square',7000,6000,.03,.06);if(i%2===0)tone(at,M.w,bass[(i>>1)%4],bass[(i>>1)%4],b*1.8,.2);if(M.arp){const f=bass[(i>>1)%4]*4*[1,1.25,1.5,2][i%4];tone(at,'triangle',f,f,b*.9,.1)}}}
+  S.scenes.forEach(sc=>{if(sc.start>=from-.01)tone(t0+sc.start-from,'sawtooth',2200,120,.35,.5);(sc.sfx||[]).forEach(x=>{if(sc.start+x.at>=from)sfx(x.id,t0+sc.start+x.at-from,g||undefined)})});
 }
 
 function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);nodes.push(o)})}
@@ -710,7 +712,7 @@ function frame(){
   drawScene(cx,w,h,sc,clamp(t-sc.start,0,sc.dur),S.pal);post(cx,w,h,t,S.pal);
 }
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
-function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();music(t);$('#pp').textContent='Пауза'}
+function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();$('#pp').textContent='Пауза';try{ensureAudio().then(()=>{if(playing)music(t)}).catch(e=>say('Не удалось включить звук: '+e.message,1))}catch(e){say('Не удалось включить звук: '+e.message,1)}}
 function pause(){playing=false;stopAudio();$('#pp').textContent='Играть'}
 function loop(now){
   if(playing){t+=(now-last)/1000;last=now;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
@@ -724,7 +726,7 @@ function startRec(){
   if(!S)return say('Сначала сгенерируйте видео.',1);
   if(!window.MediaRecorder)return say('Браузер не умеет записывать видео. Откройте в Chrome или Safari.',1);
   pause();ensureAudio();t=0;
-  const cs=cv.captureStream(30);if(cfg.mus)DEST.stream.getAudioTracks().forEach(a=>cs.addTrack(a));
+  const cs=cv.captureStream(30);DEST.stream.getAudioTracks().forEach(a=>cs.addTrack(a));
   const mime=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
   const chunks=[];rec=new MediaRecorder(cs,mime?{mimeType:mime,videoBitsPerSecond:6e6}:{videoBitsPerSecond:6e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
@@ -755,7 +757,7 @@ async function startExport(){
     let vcfg=null;for(const codec of ['avc1.640033','avc1.64002A','avc1.4d002a','avc1.42001f']){const c={codec,width:W,height:H,bitrate:Math.round(W*H*fps*.12),framerate:fps};if((await VideoEncoder.isConfigSupported(c)).supported){vcfg=c;break}}
     if(!vcfg)throw new Error('кодек H.264 недоступен');
     let abuf=null;
-    if(cfg.mus&&window.AudioEncoder&&window.OfflineAudioContext){const ac={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2,bitrate:128000};if((await AudioEncoder.isConfigSupported(ac)).supported){prog(.02,'Собираю звук…');abuf=await renderAudio()}}
+    if((cfg.mus||S.scenes.some(sc=>(sc.sfx||[]).length))&&window.AudioEncoder&&window.OfflineAudioContext){const ac={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2,bitrate:128000};if((await AudioEncoder.isConfigSupported(ac)).supported){prog(.02,'Собираю звук…');abuf=await renderAudio()}}
     const target=new ArrayBufferTarget(),muxer=new Muxer({target,video:{codec:'avc',width:W,height:H},...(abuf?{audio:{codec:'aac',sampleRate:44100,numberOfChannels:2}}:{}),fastStart:'in-memory'});
     const ve=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>{encErr=e}});ve.configure(vcfg);
     cv.width=W;cv.height=H;
@@ -782,7 +784,7 @@ async function startExport(){
     const box=$('#res');box.innerHTML='';const v=document.createElement('video');v.src=lastUrl;v.controls=true;v.playsInline=true;box.appendChild(v);
     const a=document.createElement('a');a.className='btn';a.href=lastUrl;a.download=name;a.textContent='Скачать MP4 · '+(blob.size/1048576).toFixed(1)+' МБ';box.appendChild(a);
     try{const f=new File([blob],name,{type:'video/mp4'});if(navigator.canShare&&navigator.canShare({files:[f]})){const b=document.createElement('button');b.className='btn ghost';b.textContent='Поделиться или сохранить в галерею';b.onclick=()=>navigator.share({files:[f],title:S.title}).catch(()=>{});box.appendChild(b)}}catch(e){}
-    say('Готово за '+Math.round((performance.now()-T0)/1000)+' с, '+W+'×'+H+(abuf?', со звуком.':', без звука.'));
+    say('Готово за '+Math.round((performance.now()-T0)/1000)+' с, '+W+'×'+H+(abuf?', со звуком.':', без звука (кодирование аудио недоступно).'));
     a.scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(e){
     if(/отменено/.test(e.message))say('Экспорт отменён.');else say('Быстрый экспорт не удался ('+e.message+'). Включаю запись в реальном времени.',1);
