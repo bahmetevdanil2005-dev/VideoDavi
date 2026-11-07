@@ -1254,9 +1254,9 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
      3. ИКОНКИ (10): контурные пути в сетке 24×24
      ========================================================== */
   const ICONS = {
-    syringe: ["Шприц", "m18 2 4 4 m17 7 3-3 M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5 m9 11 4 4 m5 19-3 3 m14 4 6 6"],
-    pill: ["Таблетка", "m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z m8.5 8.5 7 7"],
-    dna: ["ДНК", "m10 16 1.5 1.5 m14 8-1.5-1.5 M15 2c-1.8 2-2.5 4-2.8 6 m16.5 10.5 1 1 m17 6-2.9-2.9 M2 15c6.7-6 13.3 0 20-6 m20 9 .9.9 M3.1 14.1 4 15 m6.5 12.5 1 1 m7 18 2.9 2.9 M9 22c1.8-2 2.5-4 2.8-6"],
+    syringe: ["Шприц", "M18 3l3 3 M16.5 4.5l3 3 M18 6L7.5 16.5 M15.5 8.5l-7 7 M7.5 16.5l-2 2 M5.5 18.5l-2 2 M7.5 16.5l2 2 M8.5 15.5l2 2 M17 7l2 2 M15 9l2 2 M3.5 20.5l1-1"],
+    pill: ["Таблетка", "M7.5 20.5a5 5 0 0 1-3.5-8.5l7-7a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-5.5 1.5Z M8 8l8 8"],
+    dna: ["ДНК", "M6 2C18 6 6 18 18 22 M18 2C6 6 18 18 6 22 M8.2 5.2h7.6 M7.2 9.2h9.6 M7.2 14.8h9.6 M8.2 18.8h7.6"],
     stethoscope: ["Стетоскоп", "M11 2v2 M5 2v2 M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1 M8 15a6 6 0 0 0 12 0v-3 M20 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"],
     medkit: ["Аптечка", "M12 11v4 M14 13h-4 M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2 M18 6v14 M6 6v14 M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"],
     thermometer: ["Термометр", "M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"],
@@ -1422,15 +1422,6 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
     g.setAttribute("color", new T.BufferAttribute(col, 3)); g.computeVertexNormals();
     return new T.Mesh(g, MC("#f2f2f2", { gloss: 0.5 }, { vertexColors: true }));
   }
-  M3.h3_brain = pal => {
-    const R = rig(pal), T = R.T;
-    [-1, 1].forEach(sg => { const h = brainMesh(1, 0.64, 0.82, 1.1, sg, "#f3a0b4", "#b04a68", true); h.position.x = sg * 0.66; R.model.add(h); });
-    const cb = brainMesh(2.3, 0.62, 0.38, 0.5, 1, "#e58aa2", "#a8405e", false); cb.position.set(0, -0.62, -0.95); R.model.add(cb);
-    const st = new T.Mesh(new T.CylinderGeometry(0.17, 0.12, 0.9, 24), MC("#e8a1b0", { gloss: 0.5 })); st.position.set(0, -0.95, -0.4); st.rotation.x = -0.25; R.model.add(st);
-    R.fit(3.5);
-    return { sc: R.sc, up: lt => { R.root.rotation.y = -0.9 + sin(lt * 0.5) * 0.55; R.root.rotation.x = 0.35; R.pv.position.y = sin(lt * 1.4) * 0.04; } };
-  };
-
   M3.h3_steth = pal => {
     const R = rig(pal), T = R.T, metal = MC("#d5dde6", { gloss: 1, dark: "#222c36" }), black = MC("#18202b", { gloss: 0.5 });
     const chest = new T.Group(), disc = new T.Mesh(new T.CylinderGeometry(0.62, 0.62, 0.22, 56), metal), rim = new T.Mesh(new T.TorusGeometry(0.62, 0.05, 16, 56), metal), dia = new T.Mesh(new T.CylinderGeometry(0.54, 0.54, 0.06, 56), MC("#1c2430", { gloss: 0.4 }));
@@ -1470,7 +1461,7 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
   const names = {
     h_ecg: "Кардиомонитор (ЭКГ)", h_dna: "ДНК-спираль", h_cells: "Клетки крови", h_pulse: "Пульс сердца", h_mol: "Молекулы", h_vessel: "Кровоток", h_cross: "Медицинские кресты", h_breath: "Дыхание", h_hex: "Лаборатория", h_mri: "МРТ-скан",
     h_heart: "Бьющееся сердце", h_ecgline: "Линия ЭКГ", h_helix: "Вращающаяся ДНК", h_mitosis: "Деление клетки", h_virus: "Вирус", h_lungs: "Дышащие лёгкие", h_capsules: "Падающие капсулы", h_drop: "Капля крови", h_brain: "Нейроны мозга", h_immune: "Иммунный щит",
-    h3_heart: "Сердце 3D", h3_dna: "ДНК 3D", h3_syringe: "Шприц 3D", h3_pills: "Капсулы и таблетка 3D", h3_medkit: "Аптечка 3D", h3_virus: "Вирус 3D", h3_cell: "Клетка 3D", h3_brain: "Мозг 3D", h3_steth: "Стетоскоп 3D", h3_bottle: "Флакон с таблетками 3D"
+    h3_heart: "Сердце 3D", h3_dna: "ДНК 3D", h3_syringe: "Шприц 3D", h3_pills: "Капсулы и таблетка 3D", h3_medkit: "Аптечка 3D", h3_virus: "Вирус 3D", h3_cell: "Клетка 3D", h3_steth: "Стетоскоп 3D", h3_bottle: "Флакон с таблетками 3D"
   };
 
   /* общий реестр паков: следующие темы подключаются так же */
