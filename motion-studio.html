@@ -133,7 +133,8 @@ E('slot',(k,n,wi,nw,e,lt,s)=>{const q=stg(k,n,e);return{a:q,dy:(1-eo(q))*s*3*(k%
 E('disco',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),col:`hsl(${rnd(k+Math.floor(lt*5))*360},100%,60%)`}));
 E('wobble',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),rot:Math.sin(lt*10+k)*.12}));
 E('cascade',(k,n,wi,nw,e,lt,s)=>{const q=clamp(e*nw*1.2-wi);return{a:q,dy:(1-eo(q))*s}});
-E('squash',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),sc:1+.2*Math.sin(lt*4+k*.8)}));\nE('stretch',(k,n,wi,nw,e,lt)=>{const q=stg(k,n,e),p=eo(q);return{a:q,sx:.35+.9*p+Math.sin(lt*5+k*.35)*.08,sy:1.08-.18*p}});
+E('squash',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),sc:1+.2*Math.sin(lt*4+k*.8)}));
+E('stretch',(k,n,wi,nw,e,lt)=>{const q=stg(k,n,e),p=eo(q);return{a:q,sx:.35+.9*p+Math.sin(lt*5+k*.35)*.08,sy:1.08-.18*p}});
 E('wave2',(k,n,wi,nw,e,lt,s)=>({a:stg(k,n,e),dy:Math.sin(lt*6+k*.7)*s*.2}));
 const FX=['pop','type','words','glitch','mask','wave',...Object.keys(FXE)],
  BG=['grid','particles','gradient','speed','waves','stars','matrix','plasma','rays','checker','dotgrid','diag','aurora','noise','tunnelh','tunnelv','rings','scan'],
