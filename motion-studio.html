@@ -241,7 +241,7 @@ function drawCounter(c,w,h,L,lt,dur,pal){
   drawText(c,w,h,{text:v.toLocaleString('ru-RU')+(L.suffix||''),upper:false,y:L.y||.6,size:L.size||.16,fx:'none',color:pal[1]},Math.max(lt,.7),dur,pal);
 }
 function drawChart(c,w,h,L,lt,dur,pal){
-  const v=(Array.isArray(L.values)&&L.values.length>1?L.values:[20,35,30,55,70,95]).slice(0,10).map(Number),mx=Math.max(...v,1),n=v.length;
+  let v=(Array.isArray(L.values)&&L.values.length>1?L.values:[20,35,30,55,70,95]).slice(0,10).map(Number);if(L.kind==='stairs')v=[12,24,36,49,62,75,88,100];const mx=Math.max(...v,1),n=v.length;
   const x0=w*.1,bw=w*.8,hh=h*.34,y1=h*(L.y||.6)+hh/2,p=clamp(lt/1.8),out=clamp((dur-lt)/.3);
   c.save();c.globalAlpha=out;
   const panelW=w*.88,panelH=h*.43,panelX=(w-panelW)/2,panelY=clamp((L.y||.6)-.215,.04,.53)*h;
