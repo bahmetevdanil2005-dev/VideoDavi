@@ -140,7 +140,7 @@ E('squash',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),sc:1+.2*Math.sin(lt*4+k*.8)}));
 E('stretch',(k,n,wi,nw,e,lt)=>{const q=stg(k,n,e),p=eo(q);return{a:q,sx:.35+.9*p+Math.sin(lt*5+k*.35)*.08,sy:1.08-.18*p}});
 E('wave2',(k,n,wi,nw,e,lt,s)=>({a:stg(k,n,e),dy:Math.sin(lt*6+k*.7)*s*.2}));
 const FX=['pop','type','words','glitch','mask','wave',...Object.keys(FXE)],
- BG=['grid','particles','gradient','speed','waves','stars','matrix','plasma','rays','checker','dotgrid','diag','aurora','noise','tunnelh','tunnelv','rings','scan'],
+ BG=['grid','particles','gradient','speed','waves','stars','matrix','plasma','rays','checker','dotgrid','diag','aurora','noise','tunnelh','tunnelv','rings','scan','neuralnet','synapse','datastream','circuit','deepfield','aipulse','latentspace','neuronrain','hologrid','tensorflow'],
  TR=['fade','wipe','zoom','slide','circle','split','blinds','flash','twirl','slideup','glitch','push'],
  CH=['bars','stairs','ring','line','area','pie','gauge','dots'],
  SHP=['circle','ring','rect','triangle','star','burst','plus','heart','hex','diamond','spiral','dotsgrid'];
@@ -207,6 +207,11 @@ function drawBg(c,w,h,type,t,pal){
   if(type==='tunnelv')tun(c,w,h,t,pal,false);
   if(type==='rings'){c.strokeStyle=pal[1];c.lineWidth=Math.max(2,w*.004);for(let i=0;i<6;i++){const q=(i/6+t*.3)%1;c.globalAlpha=1-q;c.beginPath();c.arc(w/2,h/2,q*Math.max(w,h)*.7,0,7);c.stroke()}c.globalAlpha=1}
   if(type==='scan'){c.fillStyle=pal[1];c.globalAlpha=.06;for(let y=0;y<h;y+=h/80)c.fillRect(0,y,w,1);c.globalAlpha=.18;c.fillRect(0,(t*h*.3)%h,w,h*.02);c.globalAlpha=1}
+  if(['neuralnet','synapse','neuronrain','neuralweb'].includes(type)){const nodes=[];for(let i=0;i<34;i++)nodes.push({x:rnd(i+2)*w,y:rnd(i+82)*h,r:w*(.004+rnd(i+22)*.006)});c.lineWidth=Math.max(1,w*.002);c.strokeStyle=pal[1];nodes.forEach((a,i)=>nodes.forEach((b,j)=>{if(j<=i)return;const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<w*.22){c.globalAlpha=(1-d/(w*.22))*.35;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke()}}));nodes.forEach((n,i)=>{c.globalAlpha=.35+.55*Math.abs(Math.sin(t*2+i));c.fillStyle=i%4===0?pal[2]:pal[1];c.beginPath();c.arc(n.x,n.y,n.r*(1+.25*Math.sin(t*3+i)),0,7);c.fill()});c.globalAlpha=1}
+  if(type==='datastream'||type==='tensorflow'){c.font=`${w*.022}px monospace`;c.fillStyle=pal[1];for(let i=0;i<22;i++){const x=(i/22)*w+Math.sin(t+i)*w*.012;for(let j=0;j<9;j++){c.globalAlpha=.12+j*.075;c.fillText(['01','10','AI','∑','λ','∇'][Math.floor(rnd(i*11+j)*6)],x,(j/9)*h+((t*55+i*13)%55))}}c.globalAlpha=1}
+  if(type==='circuit'||type==='hologrid'){c.strokeStyle=pal[1];c.lineWidth=Math.max(1,w*.0025);c.globalAlpha=.45;const step=w/12;c.beginPath();for(let y=step;y<h;y+=step*1.5)for(let x=step;x<w;x+=step){const q=(Math.floor(x/step)+Math.floor(y/step))%2;c.moveTo(x,y);c.lineTo(x+step*(q?1:0),y);c.lineTo(x+step*(q?1:0),y+step*.5)}c.stroke();c.globalAlpha=1}
+  if(type==='deepfield'||type==='latentspace'||type==='aipulse'){for(let i=0;i<8;i++){const r=(.08+i*.075+Math.sin(t*1.4+i)*.012)*Math.min(w,h);c.strokeStyle=i%2?pal[2]:pal[1];c.globalAlpha=.12+i*.055;c.lineWidth=Math.max(1,w*.003);c.beginPath();c.ellipse(w*.5+Math.sin(t*.3+i)*w*.06,h*.5+Math.cos(t*.4+i)*h*.05,r,r*.55,Math.sin(t*.2+i)*.5,0,7);c.stroke()}c.globalAlpha=1}
+  if(type==='aichip'){const s=Math.min(w,h)*.28,x=w/2-s/2,y=h/2-s/2;c.strokeStyle=pal[1];c.lineWidth=Math.max(2,w*.006);c.strokeRect(x,y,s,s);for(let i=0;i<8;i++){const p=x+s*(i+1)/9;c.beginPath();c.moveTo(p,y-s*.18);c.lineTo(p,y);c.moveTo(p,y+s);c.lineTo(p,y+s*1.18);c.stroke();c.beginPath();c.moveTo(x-s*.18,y+s*(i+1)/9);c.lineTo(x,y+s*(i+1)/9);c.moveTo(x+s,y+s*(i+1)/9);c.lineTo(x+s*1.18,y+s*(i+1)/9);c.stroke()}c.font=`900 ${s*.24}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=pal[2];c.fillText('AI',w/2,h/2)}
 }
 function wrap(c,str,maxW){const ws=String(str).split(/\s+/).filter(Boolean),ls=[];let cur='';ws.forEach(x=>{const nx=cur?cur+' '+x:x;if(c.measureText(nx).width>maxW&&cur){ls.push(cur);cur=x}else cur=nx});if(cur)ls.push(cur);return ls}
 let BUSYBG=false,LIGHTP=false;const BUSY=['plasma','matrix','aurora','stars','speed','rays','waves','tunnelh','tunnelv','noise','checker','diag','particles','scan'];
@@ -353,7 +358,7 @@ function drawIcon(c,w,h,L,lt,dur,pal){
   c.scale(s*.5/24,s*.5/24);c.translate(-12,-12);c.lineWidth=1.7;c.lineCap='round';c.lineJoin='round';c.shadowColor=col;c.shadowBlur=s*.12;c.strokeStyle=col;c.setLineDash([140,140]);c.lineDashOffset=140*(1-eo(clamp((lt-.05)/.9)));c.stroke(icp(nm));c.setLineDash([]);
   c.restore();
 }
-const TH3=['planet','cube','knot','globe','gyro','crystal'];
+const TH3=['planet','cube','knot','globe','gyro','crystal','brain','neuralcore','aichip','datacube','quantum','serverstack','synapseorb','neuralweb','hologram','tensor'];
 function drawMega(c,w,h,L,lt,dur,pal){
   const raw=String(L.text||'ВАУ').toLocaleUpperCase('ru-RU'),dir=L.dir||'h';
   const grow=clamp(lt/1.0),out=clamp((dur-lt)/.28),ease=ob(clamp(lt/.45));
@@ -397,6 +402,13 @@ function thBuild(m,pal){
   else if(m==='knot'){g.add(new T.Mesh(new T.TorusKnotGeometry(1,.34,160,24),M({metalness:.85,roughness:.2})));up=lt=>{g.rotation.y=lt*.8;g.rotation.x=lt*.4}}
   else if(m==='globe'){const ge=new T.IcosahedronGeometry(1.6,2);g.add(new T.Mesh(ge,new T.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:.55})));g.add(new T.Mesh(new T.SphereGeometry(1.55,32,24),new T.MeshBasicMaterial({color:new T.Color(pal[0])})));g.add(new T.Points(ge,new T.PointsMaterial({color:0xffffff,size:.07})));up=lt=>{g.rotation.y=lt*.5;g.rotation.x=.4}}
   else if(m==='gyro'){const rs=[1.8,1.4,1,0].slice(0,3).map((r,i)=>{const q=new T.Mesh(new T.TorusGeometry(r,.06,16,100),M({color:i===1?col:0xffffff}));g.add(q);return q});g.add(new T.Mesh(new T.SphereGeometry(.45,32,24),M({emissive:col,emissiveIntensity:1})));up=lt=>{rs[0].rotation.x=lt*.9;rs[1].rotation.y=lt*1.2;rs[2].rotation.x=-lt*1.5;rs[2].rotation.y=lt*.7}}
+  else if(m==='brain'){const a=new T.Mesh(new T.IcosahedronGeometry(1.35,3),M({roughness:.45,metalness:.25}));a.scale.set(1,.78,1.15);g.add(a);g.add(new T.LineSegments(new T.EdgesGeometry(new T.IcosahedronGeometry(1.38,2)),LM({color:0xffffff})));up=lt=>{g.rotation.y=lt*.35;g.rotation.x=Math.sin(lt*.5)*.12}}
+  else if(m==='neuralcore'||m==='synapseorb'){const core=new T.Mesh(new T.IcosahedronGeometry(.7,2),M({emissive:col,emissiveIntensity:1.4}));g.add(core);for(let i=0;i<14;i++){const a=i*Math.PI*2/14,p=new T.Mesh(new T.SphereGeometry(.12,16,12),M({color:0xffffff,emissive:col,emissiveIntensity:.7}));p.position.set(Math.cos(a)*1.65,Math.sin(a*2)*.75,Math.sin(a)*1.65);g.add(p);g.add(new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(0,0,0),p.position.clone()]),LM({transparent:true,opacity:.65}))) }up=lt=>{g.rotation.y=lt*.45}}
+  else if(m==='aichip'){const chip=new T.Mesh(new T.BoxGeometry(1.8,.35,1.8),M({metalness:.9,roughness:.18}));g.add(chip);const top=new T.Mesh(new T.BoxGeometry(1.45,.12,1.45),M({emissive:col,emissiveIntensity:1.2}));top.position.y=.24;g.add(top);for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)if(Math.abs(i)===2||Math.abs(j)===2){const pin=new T.Mesh(new T.BoxGeometry(.08,.45,.08),M({color:0xffffff}));pin.position.set(i*.35,-.15,j*.35);g.add(pin)}up=lt=>{g.rotation.y=lt*.5;g.rotation.x=.25}}
+  else if(m==='datacube'||m==='tensor'){for(let i=0;i<3;i++){const q=new T.Mesh(new T.BoxGeometry(1.2-i*.18,1.2-i*.18,1.2-i*.18),new T.MeshBasicMaterial({color:i===1?0xffffff:col,wireframe:true,transparent:true,opacity:.8-i*.16}));g.add(q);q.userData.spin=(i%2?-.5:.6)*(i+1)}up=lt=>g.children.forEach(q=>{q.rotation.x=lt*q.userData.spin;q.rotation.y=lt*q.userData.spin*.7})}
+  else if(m==='quantum'){for(let i=0;i<3;i++){const q=new T.Mesh(new T.TorusGeometry(1.1+i*.22,.045,12,100),LM({color:i===1?0xffffff:col}));q.rotation.set(i*.8,i*.6,0);g.add(q)}g.add(new T.Mesh(new T.SphereGeometry(.35,24,18),M({emissive:col,emissiveIntensity:1.5})));up=lt=>g.rotation.y=lt*.5}
+  else if(m==='serverstack'){for(let i=0;i<4;i++){const q=new T.Mesh(new T.BoxGeometry(1.7,.55,1.1),M({metalness:.75,roughness:.3}));q.position.y=(i-1.5)*.68;g.add(q);const led=new T.Mesh(new T.SphereGeometry(.07,12,8),M({emissive:col,emissiveIntensity:2}));led.position.set(-.58,q.position.y,.57);g.add(led)}up=lt=>{g.rotation.y=Math.sin(lt*.5)*.25;g.rotation.x=.12}}
+  else if(m==='neuralweb'||m==='hologram'){const pts=[];for(let i=0;i<28;i++){const a=i*2.399,r=.45+(i%5)*.22;pts.push(new T.Vector3(Math.cos(a)*r,Math.sin(a*1.7)*1.25,Math.sin(a)*r))}g.add(new T.Points(new T.BufferGeometry().setFromPoints(pts),new T.PointsMaterial({color:col,size:.12})));for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++)if(pts[i].distanceTo(pts[j])<.85)g.add(new T.Line(new T.BufferGeometry().setFromPoints([pts[i],pts[j]]),LM({transparent:true,opacity:.35})));up=lt=>{g.rotation.y=lt*.25}}
   else{const ge=new T.OctahedronGeometry(1.4);const q=new T.Mesh(ge,M({metalness:.9,roughness:.1,flatShading:true}));q.scale.y=1.5;g.add(q);const ln=new T.LineSegments(new T.EdgesGeometry(ge),LM({color:0xffffff}));ln.scale.y=1.5;g.add(ln);up=lt=>{g.rotation.y=lt*.9;g.rotation.z=.15}}
   return {sc,up};
 }
@@ -508,7 +520,7 @@ function libraryDomain(it){
  const s=(it.id+' '+it.name+' '+it.tags+' '+it.cat).toLowerCase();
  if(/vpn|proxy|privacy|security|lock|shield|защит|безопас|шифр|парол/.test(s))return 'VPN';
  if(/crypto|bitcoin|btc|wallet|token|blockchain|крипт|битко|токен/.test(s))return 'Криптовалюта';
- if(/ai|нейро|робот|bot|cpu|chip|процессор|matrix|сеть/.test(s))return 'Нейросети';
+ if(/ai|нейро|робот|bot|cpu|chip|процессор|matrix|сеть|synapse|brain|tensor|quantum|serverstack|neural|datacube|hologram/.test(s))return 'Нейросети';
  if(/game|игр|гейм|джойст|gamepad|arcade/.test(s))return 'Игры';
  if(/film|movie|cinema|кино|фильм|camera|камер|плён|плен|монтаж|video|видео/.test(s))return 'Фильмы';
  if(/music|музык|audio|звук|waveform|нота|эквалайзер/.test(s))return 'Музыка';
@@ -527,6 +539,8 @@ function libraryDomain(it){
  if(/фон|gradient|grid|particles|rings|tunnel|plasma|aurora|waves|stars|noise|speed|rays|checker|dotgrid|diag|scan|char_|персонаж|monster|blob|orb|ghost|cat|dino|маскот/.test(s))return 'Абстрактное';
  return 'Общие элементы';
 }
+const AI_ELEMENTS=[['Нейронная сеть','three','neuralweb'],['Искусственный мозг','three','brain'],['AI-процессор','three','aichip'],['Поток данных','three','tensor'],['Синапс','three','neuralcore'],['Цифровой аватар','char','robot'],['Облачный сервер','three','serverstack'],['Матрица токенов','three','datacube'],['Квантовое ядро','three','quantum'],['Нейронная карта','three','hologram']];
+AI_ELEMENTS.forEach(([name,type,id],i)=>LIB.push({id:'ai_asset_'+id,cat:'Нейросети',domain:'Нейросети',name,tags:'нейросеть ии ai artificial intelligence '+name.toLowerCase(),mk:()=>({dur:4,bg:['neuralnet','matrix','aipulse','circuit'][i%4],layers:[{type,model:type==='three'?id:undefined,who:'robot',kind:'line',values:[15,32,48,72,95],x:.5,y:.52,size:.38}]})}));
 LIB.forEach(it=>{it.domain=libraryDomain(it)});
 /* ================= SCHEMA / VALIDATOR ================= */
 let S=null;
