@@ -17,14 +17,14 @@ h1 i{font-style:normal;color:var(--ac)}
 section{display:none;max-width:720px;margin:0 auto}
 section.on{display:block}
 textarea,input,select{width:100%;background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:12px;padding:12px;font:inherit}
-textarea{resize:vertical;min-height:104px}
+textarea{resize:none;min-height:54px;overflow:hidden;transition:height .18s ease;line-height:1.5;display:block}\ntextarea:focus{outline-offset:2px}
 textarea:focus,input:focus,select:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
 .row{margin:12px 0 0}
 .lbl{color:var(--mu);font-size:13px;margin:0 0 6px}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{flex:1;min-width:64px;background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:9px 6px;font:inherit;cursor:pointer}
+.seg button{flex:1 1 92px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25;background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:9px 7px;font:inherit;cursor:pointer}
 .seg button.on{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
-.btn{width:100%;background:var(--ac);color:#000;border:0;border-radius:14px;padding:15px;font:800 15px Unbounded,Inter,sans-serif;cursor:pointer}
+.btn{width:100%;min-width:0;min-height:48px;white-space:normal;overflow-wrap:anywhere;line-height:1.3;background:var(--ac);color:#000;border:0;border-radius:14px;padding:13px 12px;font:800 15px Unbounded,Inter,sans-serif;cursor:pointer}
 .btn.ghost{background:var(--sf);color:var(--tx);border:1px solid var(--ln);font:600 14px Inter,sans-serif}
 .btn:disabled{opacity:.45}
 #st{min-height:20px;color:var(--mu);font-size:13px;margin:10px 0}
@@ -32,7 +32,7 @@ textarea:focus,input:focus,select:focus,button:focus-visible{outline:2px solid v
 .stage{margin:14px auto 0;background:#000;border:1px solid var(--ln);border-radius:14px;overflow:hidden;display:flex;justify-content:center}
 #cv{display:block;max-width:100%;max-height:62vh;width:auto;height:auto}
 .ctl{display:flex;align-items:center;gap:10px;margin:10px 0}
-.ctl button{background:var(--ac);color:#000;border:0;border-radius:10px;padding:9px 14px;font:600 14px Inter;min-width:92px;cursor:pointer}
+.ctl button{background:var(--ac);color:#000;border:0;border-radius:10px;padding:9px 12px;font:600 14px Inter;min-width:min(92px,24vw);white-space:normal;line-height:1.2;cursor:pointer}
 .ctl input{flex:1;padding:0;accent-color:var(--ac)}
 .ctl span{color:var(--mu);font-variant-numeric:tabular-nums;font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
@@ -41,7 +41,7 @@ textarea:focus,input:focus,select:focus,button:focus-visible{outline:2px solid v
 .card b{display:block;padding:8px 10px 0;font-weight:600;font-size:14px}
 .card small{display:block;padding:0 10px 9px;color:var(--mu);font-size:12px}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#0a0a0a;border-top:1px solid var(--ln);padding:6px 10px calc(env(safe-area-inset-bottom,0px) + 6px);gap:6px}
-nav button{flex:1;background:none;border:0;color:var(--mu);font:600 14px Inter;padding:12px 4px;border-radius:10px;cursor:pointer}
+nav button{flex:1 1 0;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.2;background:none;border:0;color:var(--mu);font:600 13px Inter;padding:10px 3px;border-radius:10px;cursor:pointer}
 nav button.on{color:#000;background:var(--ac)}
 #cats button{flex:0 0 auto}
 #res video{width:100%;max-height:70vh;border-radius:14px;margin-top:12px;background:#000}
@@ -49,7 +49,7 @@ nav button.on{color:#000;background:var(--ac)}
 .chk{display:flex;gap:10px;align-items:center}
 .chk input{width:20px;height:20px;accent-color:var(--ac)}
 .note{color:var(--mu);font-size:13px;margin-top:8px}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+@media(max-width:420px){body{padding-left:10px;padding-right:10px}.seg{gap:5px}.seg button{flex-basis:calc(50% - 5px);font-size:13px;padding:9px 5px}.ctl{gap:6px}.ctl button{min-width:76px;padding:9px 8px}nav{gap:4px;padding-left:6px;padding-right:6px}nav button{font-size:12px}}\n@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important}}
 </style>
 </head>
 <body>
@@ -70,7 +70,7 @@ nav button.on{color:#000;background:var(--ac)}
   <div id="st"></div>
   <div class="stage"><canvas id="cv" width="540" height="960"></canvas></div>
   <div class="ctl"><button id="pp">Играть</button><input type="range" id="sc" min="0" max="1000" value="0" aria-label="Перемотка"><span id="tm">0:00</span></div>
-  <div class="row"><input id="edit" placeholder="Что изменить? Например: сделай финал короче и добавь график"></div>
+  <div class="row"><textarea id="edit" rows="1" placeholder="Что изменить? Например: сделай финал короче и добавь график"></textarea></div>
   <div class="row" style="display:flex;gap:8px"><button class="btn ghost" id="apply">Применить правку</button><button class="btn" id="dl">Скачать MP4</button></div>
   <div id="prog" style="display:none;margin-top:12px"><div style="height:8px;background:var(--sf);border-radius:6px;overflow:hidden"><div id="pb" style="height:100%;width:0;background:var(--ac)"></div></div><p class="note" id="pt"></p><button class="btn ghost" id="cx">Отменить</button></div>
   <div id="res"></div>
@@ -91,14 +91,14 @@ nav button.on{color:#000;background:var(--ac)}
   <div class="row chk"><input type="checkbox" id="mus" checked><label for="mus">Фоновая музыка</label></div>
   <div class="row"><p class="lbl">Качество экспорта</p><select id="qual"><option value="1">Быстро (540p)</option><option value="2">Full HD (1080p)</option></select></div>
   <div class="row"><p class="lbl">Кино-эффекты (виньетка, зерно, свечение)</p><select id="post"><option value="0">Выкл</option><option value="1">Мягко</option><option value="2">Сильно</option></select></div>
-  <div class="row chk"><input type="checkbox" id="hud" checked><label for="hud">Рамка HUD поверх видео</label></div>
+  <div class="row chk"><input type="checkbox" id="hud"><label for="hud">Рамка HUD поверх видео</label></div>
   <p class="note">Без ключа сайт собирает видео по правилам и шаблонам. С ключом ИИ сам пишет сценарий по вашему описанию. Запросы к ИИ работают, когда файл открыт со своего хостинга, например GitHub Pages.</p>
 </section>
 
 <nav><button data-t="t-create" class="on">Создать</button><button data-t="t-lib">Библиотека</button><button data-t="t-set">Настройки</button></nav>
 
 <script>
-/* ================= CONFIG ================= */
+/* ================= CONFIG ================= */\nfunction autosize(el){if(!el)return;const h=el.offsetHeight;el.style.height=h+'px';requestAnimationFrame(()=>{el.style.height='auto';const next=Math.max(54,el.scrollHeight);el.style.height=next+'px'})}\nfunction initAutosize(){['#desc','#edit'].forEach(sel=>{const el=$(sel);if(!el)return;el.addEventListener('input',()=>autosize(el));autosize(el)})}\n
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const eo=x=>1-Math.pow(1-x,3);
@@ -158,7 +158,7 @@ const N={pop:'Всплытие',rise:'Подъём по буквам',drop:'Па
 const PAL={neon:['#000000','#c6ff00','#ffffff'],min:['#f5f5f2','#ff4d00','#111111'],corp:['#0b1d3a','#4cc9f0','#ffffff'],game:['#12002b','#ff2e97','#ffe600'],sun:['#1a0b2e','#ff9f1c','#fff3d6'],ocean:['#021b2b','#00d4ff','#e6faff'],mono:['#000000','#ffffff','#bdbdbd'],candy:['#fff0f6','#ff3d9a','#2b0a3d'],forest:['#06150c','#7dff7a','#eaffea'],red:['#0d0000','#ff2b2b','#ffffff']};
 const DIM={'9:16':[540,960],'16:9':[960,540],'1:1':[720,720]};
 const ui={format:'9:16',dur:30,style:'neon',tone:'auto',arc:'auto'};
-const cfg={key:'',model:'claude-opus-5-5',local:false,mus:true,hud:true,q:2,post:1,worker:'',music:'energetic'};
+const cfg={key:'',model:'claude-opus-5-5',local:false,mus:true,hud:false,q:2,post:1,worker:'',music:'energetic'};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('ms_cfg')||'{}'))}catch(e){}
 if(!cfg.worker)cfg.worker='https://video-radar-api.bahmetevdanil2005.workers.dev';
 const saveCfg=()=>{try{localStorage.setItem('ms_cfg',JSON.stringify(cfg))}catch(e){}};
@@ -201,18 +201,28 @@ function drawBg(c,w,h,type,t,pal){
 function wrap(c,str,maxW){const ws=String(str).split(/\s+/).filter(Boolean),ls=[];let cur='';ws.forEach(x=>{const nx=cur?cur+' '+x:x;if(c.measureText(nx).width>maxW&&cur){ls.push(cur);cur=x}else cur=nx});if(cur)ls.push(cur);return ls}
 let BUSYBG=false,LIGHTP=false;const BUSY=['plasma','matrix','aurora','stars','speed','rays','waves','tunnelh','tunnelv','noise','checker','diag','particles','scan'];
 function drawText(c,w,h,L,lt,dur,pal){
-  const s=(L.size||.085)*w, fx=L.fx||'pop', col=L.color||pal[2];
-  c.font=`800 ${s}px ${FONT}`;c.textBaseline='middle';
-  const raw=String(L.text||''),acc=new Set();let clean='',inA=false;for(const q of raw){if(q==='*'){inA=!inA;continue}if(inA&&q!==' ')acc.add(clean.replace(/ /g,'').length);clean+=q}
-  const lines=wrap(c,clean,w*.86), all=lines.join(' '), n=all.replace(/ /g,'').length||1, nw=all.split(' ').length;
-  const ent=fx==='type'?clamp(lt/(.05*n+.2)):fx==='words'?clamp(lt/(.28*nw+.3)):clamp(lt/.7), out=clamp((dur-lt)/.3);
+  let size=(L.size||.085)*w;
+  const fx=L.fx||'pop',col=L.color||pal[2],raw=String(L.text||'');
+  const acc=new Set();let clean='',inA=false;
+  for(const q of raw){if(q==='*'){inA=!inA;continue}if(inA&&q!==' ')acc.add(clean.replace(/ /g,'').length);clean+=q}
+  const maxW=w*.82;
+  c.save();c.textAlign='left';c.textBaseline='middle';c.font='800 '+size+'px '+FONT;
+  let lines=wrap(c,clean,maxW);
+  const widest=Math.max(1,...lines.map(x=>c.measureText(x).width));
+  const maxH=h*.24;
+  size*=Math.min(1,maxW/widest,maxH/(Math.max(1,lines.length)*size*1.3));
+  c.font='800 '+size+'px '+FONT;
+  const all=lines.join(' '),n=all.replace(/ /g,'').length||1,nw=all.split(' ').length;
+  const ent=fx==='type'?clamp(lt/(.05*n+.2)):fx==='words'?clamp(lt/(.28*nw+.3)):clamp(lt/.7);
+  const out=clamp((dur-lt)/.3),cy0=clamp(L.y||.5,.12,.88)*h;
   const pass=(dx,col2,al,hl)=>{
     let k=0,wi=0;
     lines.forEach((ln,li)=>{
-      const cy=L.y*h+(li-(lines.length-1)/2)*s*1.3, wd=c.measureText(ln).width, x0=w/2-wd/2+dx;
-      if(hl){c.fillStyle=pal[1];c.globalAlpha=out*al*eo(ent);c.fillRect(x0-s*.25,cy-s*.62,wd*eo(ent)+s*.5,s*1.24)}
-      c.save();if(BUSYBG&&!hl){c.shadowColor=LIGHTP?'rgba(255,255,255,.7)':'rgba(0,0,0,.75)';c.shadowBlur=s*.18}
-      if(fx==='mask'){c.beginPath();c.rect(x0-4,cy-s,(wd+8)*eo(ent),s*2);c.clip()}
+      const cy=cy0+(li-(lines.length-1)/2)*size*1.3,wd=c.measureText(ln).width,x0=w/2-wd/2+dx;
+      if(hl){c.fillStyle=pal[1];c.globalAlpha=out*al*eo(ent);c.fillRect(x0-size*.25,cy-size*.62,wd*eo(ent)+size*.5,size*1.24)}
+      c.save();
+      if(BUSYBG&&!hl){c.shadowColor=LIGHTP?'rgba(255,255,255,.7)':'rgba(0,0,0,.75)';c.shadowBlur=size*.18}
+      if(fx==='mask'){c.beginPath();c.rect(x0-4,cy-size,(wd+8)*eo(ent),size*2);c.clip()}
       let x=x0;
       for(const ch of ln){
         const cw=c.measureText(ch).width;let a=1,sc=1,dy=0,dx2=0,rot=0,cc=null;
@@ -220,17 +230,25 @@ function drawText(c,w,h,L,lt,dur,pal){
         if(fx==='type')a=k<ent*n?1:0;
         else if(fx==='words'){const q=clamp(ent*nw-wi);a=q>0?1:0;sc=ob(q)}
         else if(fx==='pop'){a=clamp(ent*2);sc=ob(ent)}
-        else if(fx==='wave'){a=clamp(ent*2-k/n);dy=Math.sin(lt*4+k*.5)*s*.12}
+        else if(fx==='wave'){a=clamp(ent*2-k/n);dy=Math.sin(lt*4+k*.5)*size*.12}
         else if(fx==='glitch'){a=ent>0?1:0}
-        else if(FXE[fx]){const r=FXE[fx](k,n,wi,nw,ent,lt,s);a=r.a??1;sc=r.sc??1;dy=r.dy||0;dx2=r.dx||0;rot=r.rot||0;cc=r.col||null}
-        c.save();c.globalAlpha=a*out*al;c.translate(x+cw/2+dx2,cy+dy);c.rotate(rot);c.scale(Math.max(sc,.001),Math.max(sc,.001));c.fillStyle=cc&&!hl?cc:hl?pal[0]:(acc.has(k)&&col2===col?pal[1]:col2);if(!hl&&al===1){c.lineJoin='round';c.lineWidth=s*.12;c.strokeStyle=pal[0];c.globalAlpha=a*out*.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=a*out}c.fillText(ch,-cw/2,0);c.restore();
-        x+=cw;k++;
+        else if(FXE[fx]){const r=FXE[fx](k,n,wi,nw,ent,lt,size);a=r.a??1;sc=r.sc??1;dy=r.dy||0;dx2=r.dx||0;rot=r.rot||0;cc=r.col||null}
+        c.save();c.globalAlpha=a*out*al;c.translate(x+cw/2+dx2,cy+dy);c.rotate(rot);c.scale(Math.max(sc,.001),Math.max(sc,.001));
+        c.fillStyle=cc&&!hl?cc:hl?pal[0]:(acc.has(k)&&col2===col?pal[1]:col2);
+        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.12;c.strokeStyle=pal[0];c.globalAlpha=a*out*.72;c.strokeText(ch,-cw/2,0);c.globalAlpha=a*out}
+        c.fillText(ch,-cw/2,0);c.restore();x+=cw;k++;
       }
       c.restore();
     });
   };
-  if(fx==='glitch'&&rnd(Math.floor(lt*18))>.55){pass(-s*.08,pal[1],.7,false);pass(s*.08,'#00e5ff',.6,false)}
-  pass(0,col,1,!!L.hl);c.globalAlpha=1;
+  // Subtle translucent backing keeps text readable without covering the whole frame.
+  const widestNow=Math.max(1,...lines.map(x=>c.measureText(x).width));
+  if(!hl){const blockH=lines.length*size*1.3+size*.55,blockW=Math.min(maxW,widestNow+size*.8),yy=cy0-blockH/2;
+    c.save();c.globalAlpha=.38*out;c.fillStyle='#000';c.beginPath();
+    if(c.roundRect)c.roundRect((w-blockW)/2,yy,blockW,blockH,size*.18);else c.rect((w-blockW)/2,yy,blockW,blockH);
+    c.fill();c.restore()}
+  if(fx==='glitch'&&rnd(Math.floor(lt*18))>.55){pass(-size*.08,pal[1],.7,false);pass(size*.08,'#00e5ff',.6,false)}
+  pass(0,col,1,!!L.hl);c.globalAlpha=1;c.restore();
 }
 function drawCounter(c,w,h,L,lt,dur,pal){
   const v=Math.round((L.to||100)*eo(clamp(lt/1.4)));
@@ -349,17 +367,35 @@ function drawIcon(c,w,h,L,lt,dur,pal){
 }
 const TH3=['planet','cube','knot','globe','gyro','crystal'];
 function drawMega(c,w,h,L,lt,dur,pal){
-  const raw=String(L.text||'ВАУ').toUpperCase(),dir=L.dir||'h',grow=clamp(lt/1.2),out=clamp((dur-lt)/.25),e=ob(clamp(lt/.5));
-  let str=raw;const vi=[...raw].map((ch,i)=>'АЕЁИОУЫЭЮЯAEIOUY'.includes(ch)?i:-1).filter(i=>i>=0);
-  if(vi.length&&dir!=='full'){const i=vi[vi.length-1];str=raw.slice(0,i+1)+raw[i].repeat(Math.floor(grow*(L.rep==null?5:L.rep)))+raw.slice(i+1)}
-  c.save();c.globalAlpha=out;c.translate(w/2,h/2);if(dir==='v')c.rotate(-Math.PI/2);
-  if(grow>=1){c.translate((rnd(Math.floor(lt*24))-.5)*w*.006,(rnd(Math.floor(lt*24)+5)-.5)*h*.006)}
-  const W=dir==='v'?h:w,H=dir==='v'?w:h,lines=dir==='full'?raw.split(' '):[str],lh=H/lines.length;
-  c.font=`800 100px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
-  lines.forEach((ln,i)=>{const m=c.measureText(ln).width||1,sx=W*.96/m*e,sy=(dir==='full'?lh*.95:H*(dir==='v'?.8:.55))/75*(1+.03*Math.sin(lt*14))*clamp(e*1.2);
-    c.save();c.translate(0,(i-(lines.length-1)/2)*lh);c.rotate(Math.sin(lt*9)*.008);c.scale(sx,sy);
-    c.fillStyle=pal[0];c.fillText(ln,5/sx*3,8/sy*3);c.lineWidth=14;c.strokeStyle=pal[0];c.strokeText(ln,0,0);c.fillStyle=pal[1];c.fillText(ln,0,0);
-    c.globalAlpha=out*.25;c.fillStyle='#fff';c.fillText(ln,0,-1.5);c.restore()});
+  const raw=String(L.text||'ВАУ').toUpperCase(),dir=L.dir||'h';
+  const grow=clamp(lt/1.0),out=clamp((dur-lt)/.28),ease=ob(clamp(lt/.45));
+  c.save();c.globalAlpha=out;c.translate(w/2,h/2);
+  const vertical=dir==='v',maxW=vertical?h*.78:w*.84,maxH=vertical?h*.82:h*.28;
+  c.font='800 100px '+FONT;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  let lines;
+  if(dir==='full')lines=wrap(c,raw,w*.82);
+  else lines=[raw];
+  if(!lines.length)lines=['ВАУ'];
+  const widest=Math.max(1,...lines.map(x=>c.measureText(x).width));
+  const lineH=100*1.12;
+  const fit=Math.min(maxW/widest,maxH/(lines.length*lineH));
+  const fontSize=100*Math.max(.08,fit)*(.82+.18*ease);
+  c.font='800 '+fontSize+'px '+FONT;
+  const finalW=Math.max(1,...lines.map(x=>c.measureText(x).width));
+  const blockH=lines.length*fontSize*1.12;
+  const pad=fontSize*.24,boxW=Math.min(maxW+pad*2,finalW+pad*2),boxH=blockH+pad*2;
+  c.save();c.globalAlpha=out*.72;c.fillStyle='#000';c.beginPath();
+  if(c.roundRect)c.roundRect(-boxW/2,-boxH/2,boxW,boxH,fontSize*.18);else c.rect(-boxW/2,-boxH/2,boxW,boxH);
+  c.fill();c.restore();
+  lines.forEach((ln,i)=>{
+    c.save();c.translate(0,(i-(lines.length-1)/2)*fontSize*1.12);
+    if(grow>=1)c.translate((rnd(Math.floor(lt*24))-.5)*w*.003,(rnd(Math.floor(lt*24)+5)-.5)*h*.003);
+    c.rotate(Math.sin(lt*7)*.003);
+    if(vertical)c.rotate(-Math.PI/2);
+    c.lineWidth=Math.max(3,fontSize*.12);c.strokeStyle=pal[0];c.strokeText(ln,0,0);
+    c.fillStyle=pal[1];c.fillText(ln,0,0);
+    c.restore();
+  });
   c.restore();
 }
 let THL=0;
@@ -389,6 +425,38 @@ function drawThree(c,w,h,L,lt,dur,pal){
     const key=(L.model||'planet')+pal[1];const o=THM[key]||(THM[key]=thBuild(L.model||'planet',pal));o.up(lt);THR.render(o.sc,THCAM);
     c.save();c.globalAlpha=clamp((dur-lt)/.3);c.translate(x,y);const q=ob(clamp(lt/.7));c.scale(Math.max(q,.001),Math.max(q,.001));c.drawImage(THC,-s/2,-s/2,s,s);c.restore()}catch(e){THL=3}
 }
+function arrangeLayers(c,w,h,layers){
+  const visuals=[],texts=[];
+  (layers||[]).forEach(L=>{
+    const x=(L.x==null?.5:L.x)*w,y=(L.y==null?.5:L.y)*h,size=(L.size||.2)*w;
+    if(['text','counter','mega'].includes(L.type)){texts.push(L);return}
+    let bw=size,bh=size;
+    if(L.type==='chart'){bw=w*.82;bh=h*.38}
+    else if(L.type==='char'){bw=size*.95;bh=size*1.05}
+    else if(L.type==='three'){bw=size*1.15;bh=size*1.15}
+    else if(L.type==='shape'){bw=size*1.2;bh=size*1.2}
+    else if(L.type==='icon'||L.type==='emoji'){bw=size*1.15;bh=size*1.15}
+    visuals.push({x1:x-bw/2,x2:x+bw/2,y1:y-bh/2,y2:y+bh/2});
+  });
+  const occupied=visuals.slice();
+  const candidates=[.22,.36,.5,.64,.78,.12,.88];
+  const out=[];
+  texts.forEach(L=>{
+    if(L.type==='mega'){out.push(L);return}
+    const original=clamp(L.y==null?.5:L.y,.12,.88),boxW=w*.84,boxH=Math.min(h*.24,Math.max(h*.1,(L.size||.085)*w*2.1));
+    let best=original,bestScore=Infinity;
+    candidates.concat([original]).forEach(y=>{
+      const b={x1:w/2-boxW/2,x2:w/2+boxW/2,y1:y*h-boxH/2,y2:y*h+boxH/2};
+      let overlap=0;
+      occupied.forEach(o=>{const iw=Math.max(0,Math.min(b.x2,o.x2)-Math.max(b.x1,o.x1)),ih=Math.max(0,Math.min(b.y2,o.y2)-Math.max(b.y1,o.y1));overlap+=iw*ih});
+      const score=overlap*10+Math.abs(y-original)*w*h*.018;
+      if(score<bestScore){bestScore=score;best=y}
+    });
+    const copy=Object.assign({},L,{y:best});out.push(copy);
+    occupied.push({x1:w/2-boxW/2,x2:w/2+boxW/2,y1:best*h-boxH/2,y2:best*h+boxH/2});
+  });
+  return layers.filter(L=>!texts.includes(L)).concat(out);
+}
 function drawScene(c,w,h,sc,lt,pal){
   const tr=sc.trans||'fade',tp=clamp(lt/.5);
   c.save();const dz=1+.05*clamp(lt/sc.dur);c.translate(w/2,h/2);c.scale(dz,dz);c.translate(-w/2,-h/2);
@@ -402,7 +470,7 @@ function drawScene(c,w,h,sc,lt,pal){
     else if(tr==='push')c.translate(-(1-eo(tp))*w*.3,0);
     else if(tr==='glitch'&&rnd(Math.floor(lt*30))>.4)c.translate((rnd(Math.floor(lt*30)+1)-.5)*w*.1,0)}
   drawBg(c,w,h,sc.bg,lt,pal);BUSYBG=BUSY.includes(sc.bg);LIGHTP=parseInt(pal[0].slice(1,3),16)>140;if(['plasma','rays','checker','diag','noise'].includes(sc.bg)){c.globalAlpha=.3;c.fillStyle=pal[0];c.fillRect(0,0,w,h);c.globalAlpha=1}
-  (sc.layers||[]).forEach(L=>{const l=lt-(L.at||0);if(l<0)return;
+  arrangeLayers(c,w,h,sc.layers||[]).forEach(L=>{const l=lt-(L.at||0);if(l<0)return;
     if(L.type==='counter')drawCounter(c,w,h,L,l,sc.dur-(L.at||0),pal);
     else if(L.type==='chart')drawChart(c,w,h,L,l,sc.dur-(L.at||0),pal);
     else if(L.type==='shape')drawShape(c,w,h,L,l,sc.dur-(L.at||0),pal);
@@ -756,7 +824,7 @@ $('#mus').onchange=e=>{cfg.mus=e.target.checked;saveCfg()};
 $('#post').value=String(cfg.post);$('#post').onchange=e=>{cfg.post=+e.target.value;saveCfg()};
 $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;saveCfg()};
 $('#hud').checked=cfg.hud;$('#hud').onchange=e=>{cfg.hud=e.target.checked;saveCfg()};
-dims();(document.fonts&&document.fonts.ready||Promise.resolve()).then(()=>requestAnimationFrame(loop));
+initAutosize();dims();(document.fonts&&document.fonts.ready||Promise.resolve()).then(()=>requestAnimationFrame(loop));
 </script>
 </body>
 </html>
