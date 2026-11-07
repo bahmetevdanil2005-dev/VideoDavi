@@ -370,7 +370,7 @@ function drawMega(c,w,h,L,lt,dur,pal){
   const raw=String(L.text||'ВАУ').toUpperCase(),dir=L.dir||'h';
   const grow=clamp(lt/1.0),out=clamp((dur-lt)/.28),ease=ob(clamp(lt/.45));
   c.save();c.globalAlpha=out;c.translate(w/2,h/2);
-  const vertical=dir==='v',maxW=vertical?h*.78:w*.84,maxH=vertical?h*.82:h*.28;
+  const vertical=dir==='v',maxW=vertical?h*.78:w*.84,maxH=vertical?w*.78:dir==='full'?h*.78:h*.28;
   c.font='800 100px '+FONT;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
   let lines;
   if(dir==='full')lines=wrap(c,raw,w*.82);
