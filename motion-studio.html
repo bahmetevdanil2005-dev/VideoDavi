@@ -133,7 +133,7 @@ E('slot',(k,n,wi,nw,e,lt,s)=>{const q=stg(k,n,e);return{a:q,dy:(1-eo(q))*s*3*(k%
 E('disco',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),col:`hsl(${rnd(k+Math.floor(lt*5))*360},100%,60%)`}));
 E('wobble',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),rot:Math.sin(lt*10+k)*.12}));
 E('cascade',(k,n,wi,nw,e,lt,s)=>{const q=clamp(e*nw*1.2-wi);return{a:q,dy:(1-eo(q))*s}});
-E('squash',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),sc:1+.2*Math.sin(lt*4+k*.8)}));
+E('squash',(k,n,wi,nw,e,lt)=>({a:stg(k,n,e),sc:1+.2*Math.sin(lt*4+k*.8)}));\nE('stretch',(k,n,wi,nw,e,lt)=>{const q=stg(k,n,e),p=eo(q);return{a:q,sx:.35+.9*p+Math.sin(lt*5+k*.35)*.08,sy:1.08-.18*p}});
 E('wave2',(k,n,wi,nw,e,lt,s)=>({a:stg(k,n,e),dy:Math.sin(lt*6+k*.7)*s*.2}));
 const FX=['pop','type','words','glitch','mask','wave',...Object.keys(FXE)],
  BG=['grid','particles','gradient','speed','waves','stars','matrix','plasma','rays','checker','dotgrid','diag','aurora','noise','tunnelh','tunnelv','rings','scan'],
@@ -151,7 +151,7 @@ const WHO=['monster','robot','cursor','blob','orb',...Object.keys(SPR)];
 const SFX={whoosh:[['sawtooth',2000,100,.35,.5]],pop:[['sine',700,200,.1,.9]],click:[['square',1800,900,.04,.4]],hit:[['sine',160,40,.25,1],['square',900,100,.08,.4]],riser:[['sawtooth',150,2400,1.2,.4]],coin:[['square',988,988,.08,.3],['square',1319,1319,.25,.3,.08]],laser:[['sawtooth',2400,200,.25,.3]],blip:[['square',440,880,.1,.3]],success:[['triangle',523,523,.12,.5],['triangle',659,659,.12,.5,.12],['triangle',784,784,.3,.5,.24]],error:[['sawtooth',200,200,.15,.4],['sawtooth',150,150,.3,.4,.16]],drop:[['sine',800,60,.5,.8]],zap:[['square',3000,100,.15,.3]],boom:[['sine',90,25,.7,1.2]],tick:[['square',2400,2400,.02,.3]]};
 const MUS={energetic:{bpm:128,bass:[55,55,65.4,49],w:'sawtooth',kick:1,hat:1,arp:0},calm:{bpm:78,bass:[65.4,55,49,55],w:'sine',kick:0,hat:0,arp:1},epic:{bpm:92,bass:[49,49,58.3,43.6],w:'sawtooth',kick:1,hat:0,arp:1},tech:{bpm:124,bass:[55,82.4,55,73.4],w:'square',kick:1,hat:1,arp:1},chill:{bpm:90,bass:[73.4,65.4,55,65.4],w:'triangle',kick:1,hat:0,arp:1},game:{bpm:144,bass:[65.4,82.4,73.4,98],w:'square',kick:1,hat:1,arp:1}};
 const EMO={'vpn':'🔒','деньг':'💰','выруч':'📈','рост':'📈','космос':'🚀','нейро':'🤖','скорост':'⚡','защит':'🛡️','мир':'🌍','идея':'💡','цел':'🎯','врем':'⏰','сердц':'❤️','любов':'❤️','игр':'🎮','музык':'🎵','огон':'🔥','успех':'🏆'};
-const N={pop:'Всплытие',rise:'Подъём по буквам',drop:'Падение букв',left:'Влёт слева',right:'Влёт справа',spin:'Вращение букв',zoomin:'Наезд букв',zoomout:'Рост букв',bounce:'Прыжки',shake:'Тряска',flicker:'Неон мерцает',scatter:'Сборка из хаоса',elastic:'Резинка',swing:'Качели',jelly:'Желе',float:'Парение',pulse:'Пульс',rainbow:'Радуга',fire:'Огонь',ice:'Лёд',slot:'Слот-машина',disco:'Диско',wobble:'Шатание',cascade:'Каскад слов',squash:'Сжатие',wave2:'Бегущая волна',
+const N={pop:'Всплытие',rise:'Подъём по буквам',drop:'Падение букв',left:'Влёт слева',right:'Влёт справа',spin:'Вращение букв',zoomin:'Наезд букв',zoomout:'Рост букв',bounce:'Прыжки',shake:'Тряска',flicker:'Неон мерцает',scatter:'Сборка из хаоса',elastic:'Резинка',swing:'Качели',jelly:'Желе',float:'Парение',pulse:'Пульс',rainbow:'Радуга',fire:'Огонь',ice:'Лёд',slot:'Слот-машина',disco:'Диско',wobble:'Шатание',cascade:'Каскад слов',squash:'Сжатие',stretch:'Растяжение букв',wave2:'Бегущая волна',
  stars:'Звёзды',matrix:'Матрица',plasma:'Плазма',rays:'Лучи',checker:'Шахматка',dotgrid:'Сетка точек',diag:'Диагонали',aurora:'Аврора',noise:'Зерно',tunnelh:'Туннель горизонтальный',tunnelv:'Туннель вертикальный',rings:'Кольца',scan:'Сканер',
  circle:'Круг (переход)',split:'Раскрытие',blinds:'Жалюзи',flash:'Вспышка',twirl:'Вращение сцены',slideup:'Подъём',push:'Толчок',
  line:'Линия',area:'Область',pie:'Круговая',gauge:'Спидометр',dots:'Пиктограмма',
@@ -205,58 +205,59 @@ function drawBg(c,w,h,type,t,pal){
 function wrap(c,str,maxW){const ws=String(str).split(/\s+/).filter(Boolean),ls=[];let cur='';ws.forEach(x=>{const nx=cur?cur+' '+x:x;if(c.measureText(nx).width>maxW&&cur){ls.push(cur);cur=x}else cur=nx});if(cur)ls.push(cur);return ls}
 let BUSYBG=false,LIGHTP=false;const BUSY=['plasma','matrix','aurora','stars','speed','rays','waves','tunnelh','tunnelv','noise','checker','diag','particles','scan'];
 function drawText(c,w,h,L,lt,dur,pal){
-  let size=(L.size||.085)*w;
-  const fx=L.fx||'pop',col=L.color||pal[2],raw=String(L.text||'');
+  const fx=L.fx||'pop',col=L.color||pal[2];
+  const raw=String(L.text||'');
   const acc=new Set();let clean='',inA=false;
   for(const q of raw){if(q==='*'){inA=!inA;continue}if(inA&&q!==' ')acc.add(clean.replace(/ /g,'').length);clean+=q}
-  const maxW=w*.82;
-  c.save();c.textAlign='left';c.textBaseline='middle';c.font='800 '+size+'px '+FONT;
-  let lines=wrap(c,clean,maxW);
-  const widest=Math.max(1,...lines.map(x=>c.measureText(x).width));
-  const maxH=h*.24;
-  size*=Math.min(1,maxW/widest,maxH/(Math.max(1,lines.length)*size*1.3));
-  c.font='800 '+size+'px '+FONT;
-  const all=lines.join(' '),n=all.replace(/ /g,'').length||1,nw=all.split(' ').length;
+  // Основная реплика видео — капсом; служебные/числовые подписи сохраняют исходный регистр.
+  if(L.upper!==false)clean=clean.toLocaleUpperCase('ru-RU');
+  const maxW=w*.86;
+  let size=Math.min((L.size||.085)*w,h*.17);
+  c.save();c.textAlign='left';c.textBaseline='middle';c.font='900 '+size+'px '+FONT;
+  // Одна строка без переноса. Сначала уменьшаем кегль, затем слегка сжимаем по горизонтали.
+  const measured=Math.max(1,c.measureText(clean).width);
+  size=Math.max(w*.034,size*Math.min(1,maxW/measured));
+  c.font='900 '+size+'px '+FONT;
+  const textW=Math.max(1,c.measureText(clean).width);
+  const scaleX=Math.min(1,maxW/textW);
+  const n=clean.replace(/\s/g,'').length||1,nw=clean.trim().split(/\s+/).filter(Boolean).length||1;
   const ent=fx==='type'?clamp(lt/(.05*n+.2)):fx==='words'?clamp(lt/(.28*nw+.3)):clamp(lt/.7);
-  const out=clamp((dur-lt)/.3),cy0=clamp(L.y||.5,.12,.88)*h;
+  const fade=clamp((dur-lt)/.3),cy=clamp(L.y||.5,.12,.88)*h;
+  const xStart=-textW/2;
   const pass=(dx,col2,al,hl)=>{
-    let k=0,wi=0;
-    lines.forEach((ln,li)=>{
-      const cy=cy0+(li-(lines.length-1)/2)*size*1.3,wd=c.measureText(ln).width,x0=w/2-wd/2+dx;
-      if(hl){c.fillStyle=pal[1];c.globalAlpha=out*al*eo(ent);c.fillRect(x0-size*.25,cy-size*.62,wd*eo(ent)+size*.5,size*1.24)}
-      c.save();
-      if(BUSYBG&&!hl){c.shadowColor=LIGHTP?'rgba(255,255,255,.7)':'rgba(0,0,0,.75)';c.shadowBlur=size*.18}
-      if(fx==='mask'){c.beginPath();c.rect(x0-4,cy-size,(wd+8)*eo(ent),size*2);c.clip()}
-      let x=x0;
-      for(const ch of ln){
-        const cw=c.measureText(ch).width;let a=1,sc=1,dy=0,dx2=0,rot=0,cc=null;
-        if(ch===' '){wi++;x+=cw;continue}
-        if(fx==='type')a=k<ent*n?1:0;
-        else if(fx==='words'){const q=clamp(ent*nw-wi);a=q>0?1:0;sc=ob(q)}
-        else if(fx==='pop'){a=clamp(ent*2);sc=ob(ent)}
-        else if(fx==='wave'){a=clamp(ent*2-k/n);dy=Math.sin(lt*4+k*.5)*size*.12}
-        else if(fx==='glitch'){a=ent>0?1:0}
-        else if(FXE[fx]){const r=FXE[fx](k,n,wi,nw,ent,lt,size);a=r.a??1;sc=r.sc??1;dy=r.dy||0;dx2=r.dx||0;rot=r.rot||0;cc=r.col||null}
-        c.save();c.globalAlpha=a*out*al;c.translate(x+cw/2+dx2,cy+dy);c.rotate(rot);c.scale(Math.max(sc,.001),Math.max(sc,.001));
-        c.fillStyle=cc&&!hl?cc:hl?pal[0]:(acc.has(k)&&col2===col?pal[1]:col2);
-        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.12;c.strokeStyle=pal[0];c.globalAlpha=a*out*.72;c.strokeText(ch,-cw/2,0);c.globalAlpha=a*out}
-        c.fillText(ch,-cw/2,0);c.restore();x+=cw;k++;
-      }
-      c.restore();
-    });
+    let k=0,wi=0,x=xStart;
+    c.save();c.translate(w/2+dx,cy);c.scale(scaleX,1);
+    if(hl){c.fillStyle=pal[1];c.globalAlpha=fade*al*eo(ent);c.fillRect(xStart-size*.25,-size*.62,textW*eo(ent)+size*.5,size*1.24)}
+    if(BUSYBG&&!hl){c.shadowColor=LIGHTP?'rgba(255,255,255,.7)':'rgba(0,0,0,.75)';c.shadowBlur=size*.18}
+    if(fx==='mask'){c.beginPath();c.rect(xStart-size*.1,-size,textW*eo(ent)+size*.2,size*2);c.clip()}
+    for(const ch of clean){
+      const cw=c.measureText(ch).width;
+      if(ch===' '){wi++;x+=cw;continue}
+      let a=1,sc=1,sx=1,sy=1,dy=0,dx2=0,rot=0,cc=null;
+      if(fx==='type')a=k<ent*n?1:0;
+      else if(fx==='words'){const q=clamp(ent*nw-wi);a=q>0?1:0;sc=ob(q)}
+      else if(fx==='pop'){a=clamp(ent*2);sc=ob(ent)}
+      else if(fx==='wave'){a=clamp(ent*2-k/n);dy=Math.sin(lt*4+k*.5)*size*.12}
+      else if(fx==='glitch'){a=ent>0?1:0}
+      else if(FXE[fx]){const r=FXE[fx](k,n,wi,nw,ent,lt,size);a=r.a??1;sc=r.sc??1;sx=r.sx??sc;sy=r.sy??sc;dy=r.dy||0;dx2=r.dx||0;rot=r.rot||0;cc=r.col||null}
+      c.save();c.globalAlpha=a*fade*al;c.translate(x+cw/2+dx2,dy);c.rotate(rot);c.scale(Math.max(sx,.001),Math.max(sy,.001));
+      c.fillStyle=cc&&!hl?cc:hl?pal[0]:(acc.has(k)&&col2===col?pal[1]:col2);
+      if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.12;c.strokeStyle=pal[0];c.globalAlpha=a*fade*.72;c.strokeText(ch,-cw/2,0);c.globalAlpha=a*fade}
+      c.fillText(ch,-cw/2,0);c.restore();x+=cw;k++;
+    }
+    c.restore();
   };
-  // Subtle translucent backing keeps text readable without covering the whole frame.
-  const widestNow=Math.max(1,...lines.map(x=>c.measureText(x).width));
-  if(!L.hl){const blockH=lines.length*size*1.3+size*.55,blockW=Math.min(maxW,widestNow+size*.8),yy=cy0-blockH/2;
-    c.save();c.globalAlpha=.38*out;c.fillStyle='#000';c.beginPath();
-    if(c.roundRect)c.roundRect((w-blockW)/2,yy,blockW,blockH,size*.18);else c.rect((w-blockW)/2,yy,blockW,blockH);
+  const blockW=Math.min(maxW,textW*scaleX+size*.8),blockH=size*1.65;
+  if(!L.hl){c.save();c.globalAlpha=.34*fade;c.fillStyle='#000';c.beginPath();
+    if(c.roundRect)c.roundRect((w-blockW)/2,cy-blockH/2,blockW,blockH,size*.18);else c.rect((w-blockW)/2,cy-blockH/2,blockW,blockH);
     c.fill();c.restore()}
   if(fx==='glitch'&&rnd(Math.floor(lt*18))>.55){pass(-size*.08,pal[1],.7,false);pass(size*.08,'#00e5ff',.6,false)}
   pass(0,col,1,!!L.hl);c.globalAlpha=1;c.restore();
 }
+
 function drawCounter(c,w,h,L,lt,dur,pal){
   const v=Math.round((L.to||100)*eo(clamp(lt/1.4)));
-  drawText(c,w,h,{text:v.toLocaleString('ru-RU')+(L.suffix||''),y:L.y||.6,size:L.size||.16,fx:'none',color:pal[1]},Math.max(lt,.7),dur,pal);
+  drawText(c,w,h,{text:v.toLocaleString('ru-RU')+(L.suffix||''),upper:false,y:L.y||.6,size:L.size||.16,fx:'none',color:pal[1]},Math.max(lt,.7),dur,pal);
 }
 function drawChart(c,w,h,L,lt,dur,pal){
   const v=(Array.isArray(L.values)&&L.values.length>1?L.values:[20,35,30,55,70,95]).slice(0,10).map(Number),mx=Math.max(...v,1),n=v.length;
@@ -611,11 +612,11 @@ const SYS=`Ты автор сценариев коротких образова�
 - Не подменяй объяснение словами «быстрое соединение», «новый уровень», «будущее уже здесь», «технологии меняют всё» и подобными общими фразами.
 - Развивай одну мысль последовательно: зацепка → что это значит → как это работает → конкретные примеры → возможности и ограничения/последствия → вывод.
 - Каждая сцена должна продолжать предыдущую. Не делай случайный набор несвязанных визуальных вставок.
-- Текст каждого слоя type=text — это реплика, которую можно естественно произнести вслух. Обычно 8–16 слов, цельное предложение или законченная мысль. Допускается 2 короткие реплики в сцене, если они логически связаны. Не используй только заголовки и отдельные существительные.
+- Текст каждого слоя type=text — это реплика, которую можно естественно произнести вслух. Обычно 5–9 слов, цельная короткая мысль, чтобы она красиво помещалась в одну строку. Не вставляй переносы строк. Визуальный рендер автоматически делает основной текст КАПСОМ; не нужно писать его капсом в JSON.
 - На 30 секунд планируй 6–8 содержательных сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Учитывай время чтения: не мельчи текст и не ускоряй смену сцен ради эффектности.
 - Визуальные элементы должны иллюстрировать именно смысл текущей реплики. Не вставляй туннели, графики, лесенки, 3D-объекты и маскотов просто для заполнения сцены. График используй только когда он действительно помогает объяснить данные или сравнение.
 - Не выдумывай статистику, исследования, проценты, гарантии и факты. Используй числа только если они есть в брифе или явно обозначай пример как условный.
-- Не ставь крупный mega-текст вместо содержания. Не делай сцену только из слова на весь экран. Предпочитай читабельную типографику и спокойную композицию.
+- Основная реплика — главный типографический акцент кадра: короткая, выразительная, легко читается с первого взгляда и помещается в одну строку. Для отдельных акцентных слов выбирай выразительные эффекты букв (stretch, elastic, squash, wave, rise), но не анимируй каждую сцену одинаково. Дополнительные подписи и числа оставляй в обычном регистре.
 - Тон — живой, ясный, уверенный, без канцелярита и искусственного рекламного пафоса. Только русский язык.
 
 РЕКЛАМА — ОТДЕЛЬНЫЙ ФИНАЛЬНЫЙ БЛОК:
@@ -833,7 +834,7 @@ function descFor(){
   return `ТЕМА РОЛИКА: ${topic}
 Формат ${ui.format}, длительность около ${ui.dur} секунд, стиль ${ui.style}. Тон: ${({auto:'естественный и ясный',bold:'энергичный, но содержательный',serious:'серьёзный и понятный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный, но не пафосный'})[ui.tone]}. Структура: ${({auto:'последовательное объяснение',story:'объяснение через историю',list:'последовательные пункты с пояснением',qa:'вопрос и подробный ответ',ba:'сравнение до и после'})[ui.arc]}.
 
-ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать законченную фразу, которую можно произнести вслух. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
+ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать короткую законченную фразу на 5–9 слов, которую можно произнести вслух и которая помещается в одну строку. Основная реплика визуально выделяется КАПСОМ; дополнительные подписи и числа — обычным регистром. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
 
 ${adRule}`;
 }
