@@ -385,9 +385,8 @@ function drawMega(c,w,h,L,lt,dur,pal){
   c.save();c.globalAlpha=out;c.translate(w/2,h/2);
   const vertical=dir==='v',maxW=vertical?h*.78:w*.84,maxH=vertical?w*.78:dir==='full'?h*.78:h*.28;
   c.font='800 100px '+FONT;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
-  let lines;
-  if(dir==='full')lines=wrap(c,raw,w*.82);
-  else lines=[raw];
+  // Даже полноэкранный акцент остаётся одной строкой: масштабируем, не переносим.
+  const lines=[raw];
   if(!lines.length)lines=['ВАУ'];
   const widest=Math.max(1,...lines.map(x=>c.measureText(x).width));
   const lineH=100*1.12;
