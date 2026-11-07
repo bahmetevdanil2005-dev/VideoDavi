@@ -102,7 +102,8 @@ nav button.on{color:#000;background:var(--ac)}
 <script>
 /* ================= CONFIG ================= */
 function autosize(el){if(!el)return;const h=el.offsetHeight;el.style.height=h+'px';requestAnimationFrame(()=>{el.style.height='auto';const next=Math.max(54,el.scrollHeight);el.style.height=next+'px'})}
-function initAutosize(){['#desc','#edit'].forEach(sel=>{const el=$(sel);if(!el)return;el.addEventListener('input',()=>autosize(el));autosize(el)})}\n
+function initAutosize(){['#desc','#edit'].forEach(sel=>{const el=$(sel);if(!el)return;el.addEventListener('input',()=>autosize(el));autosize(el)})}
+
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const eo=x=>1-Math.pow(1-x,3);
