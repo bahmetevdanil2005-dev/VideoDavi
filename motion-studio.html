@@ -44,7 +44,8 @@ textarea:focus,input:focus,select:focus,button:focus-visible{outline:2px solid v
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#0a0a0a;border-top:1px solid var(--ln);padding:6px 10px calc(env(safe-area-inset-bottom,0px) + 6px);gap:6px}
 nav button{flex:1 1 0;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.2;background:none;border:0;color:var(--mu);font:600 13px Inter;padding:10px 3px;border-radius:10px;cursor:pointer}
 nav button.on{color:#000;background:var(--ac)}
-#cats button{flex:0 0 auto}
+ .lib-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.72fr);gap:8px;margin-top:12px}
+.lib-tools input,.lib-tools select{min-width:0}
 #res video{width:100%;max-height:70vh;border-radius:14px;margin-top:12px;background:#000}
 #res a.btn,#res button.btn{display:block;text-align:center;text-decoration:none;margin-top:10px}
 .chk{display:flex;gap:10px;align-items:center}
@@ -79,9 +80,11 @@ nav button.on{color:#000;background:var(--ac)}
 </section>
 
 <section id="t-lib">
-  <input id="q" placeholder="Поиск по библиотеке: глитч, график, переход">
-  <p class="note">Нажмите на карточку: шаблон добавится в видео новой сценой, звук прозвучит, эффект станет меткой в описании.</p>
-  <div class="seg" id="cats" style="margin-top:12px"></div>
+  <div class="lib-tools">
+    <input id="q" type="search" placeholder="Поиск по темам и элементам: здоровье, камера, график…">
+    <select id="catfilter" aria-label="Фильтр библиотеки"><option value="">Все направления</option></select>
+  </div>
+  <p class="note" id="libcount">Все элементы библиотеки</p>
   <div class="grid" id="grid"></div>
 </section>
 
@@ -468,7 +471,6 @@ function drawScene(c,w,h,sc,lt,pal){
   }
 }
 const LIB=[
- ...FX.map(id=>({id,cat:'Текст',name:{pop:'Всплытие',type:'Печать',words:'По словам',glitch:'Глитч',mask:'Маска слева',wave:'Волна'}[id]||N[id]||id,tags:id,mk:()=>({dur:3,bg:'grid',layers:[{type:'text',fx:id,text:'Ваш текст',y:.5,size:.12}]})})),
  ...BG.map(id=>({id,cat:'Фон',name:{grid:'Сетка',particles:'Частицы',gradient:'Градиент',speed:'Гиперпрыжок',waves:'Волны'}[id]||N[id]||id,tags:id,mk:()=>({dur:3,bg:id,layers:[]})})),
  ...CH.map(id=>({id,cat:'График',name:{bars:'Столбцы',stairs:'Лесенка роста',ring:'Кольцо прогресса'}[id]||N[id]||id,tags:id,mk:()=>({dur:3,bg:'grid',layers:[{type:'chart',kind:id,values:['ring','gauge','dots'].includes(id)?[72]:id==='pie'?[40,25,20,15]:undefined,y:.5}]})})),
  ...WHO.map(id=>({id:'char_'+id,cat:'Персонаж',name:N[id]||id,tags:id+' персонаж',mk:()=>({dur:3,bg:'grid',layers:[{type:'char',who:id,state:'jump',x:.5,y:.55,size:.4}]})})),
@@ -499,6 +501,33 @@ TPL.push(['Мега-текст по горизонтали',{dur:3,bg:'speed',tr
 ['Планета и заголовок',{dur:5,bg:'stars',trans:'circle',sfx:[{at:.2,id:'whoosh'}],layers:[{type:'three',model:'planet',x:.5,y:.35,size:.8},{type:'text',fx:'rise',text:'Новый *мир*',y:.78,size:.09,at:.4}]}],['Гироскоп',{dur:5,bg:'tunnelh',trans:'zoom',sfx:[{at:.2,id:'riser'}],layers:[{type:'three',model:'gyro',x:.5,y:.4,size:.8},{type:'text',fx:'words',text:'Технологии *будущего*',y:.8,size:.07,at:.5}]}],['Кристалл',{dur:5,bg:'aurora',trans:'twirl',sfx:[{at:.2,id:'success'}],layers:[{type:'three',model:'crystal',x:.5,y:.4,size:.8},{type:'text',fx:'jelly',text:'Чистая *ценность*',y:.8,size:.07,at:.5}]}]);
 LIB.push(...TH3.map(m=>({id:'3d_'+m,cat:'3D',name:{planet:'Планета',cube:'Куб',knot:'Узел',globe:'Сетка-глобус',gyro:'Гироскоп',crystal:'Кристалл'}[m],tags:'3d три д '+m,mk:()=>({dur:4,bg:'stars',layers:[{type:'three',model:m,x:.5,y:.5,size:.85}]}),act:()=>addScene({dur:4.5,bg:'stars',trans:'circle',sfx:[{at:.1,id:'whoosh'}],layers:[{type:'three',model:m,x:.5,y:.42,size:.85}]})})));
 LIB.push(...TPL.map(([name,sc])=>({id:'tpl_'+name,cat:'Шаблон',name:name,tags:'шаблон сцена '+name,mk:()=>sc,act:()=>addScene(sc)})));
+
+/* Основные тематические направления — категории можно наполнять поэтапно. */
+const LIB_DOMAINS=['Здоровье','Новости','Криптовалюта','IT','Нейросети','Политика','Войны','VPN','Игры','Фильмы','Музыка','Путешествия','Бизнес и финансы','Образование','Наука','Спорт','Природа','Еда','Абстрактное','Общие элементы'];
+function libraryDomain(it){
+ const s=(it.id+' '+it.name+' '+it.tags+' '+it.cat).toLowerCase();
+ if(/vpn|proxy|privacy|security|lock|shield|защит|безопас|шифр|парол/.test(s))return 'VPN';
+ if(/crypto|bitcoin|btc|wallet|token|blockchain|крипт|битко|токен/.test(s))return 'Криптовалюта';
+ if(/ai|нейро|робот|bot|cpu|chip|процессор|matrix|сеть/.test(s))return 'Нейросети';
+ if(/game|игр|гейм|джойст|gamepad|arcade/.test(s))return 'Игры';
+ if(/film|movie|cinema|кино|фильм|camera|камер|плён|плен|монтаж|video|видео/.test(s))return 'Фильмы';
+ if(/music|музык|audio|звук|waveform|нота|эквалайзер/.test(s))return 'Музыка';
+ if(/travel|trip|путеше|plane|самол|карта|маршрут|компас/.test(s))return 'Путешествия';
+ if(/health|heart|сердц|медиц|здоров|пульс|аптек|врач/.test(s))return 'Здоровье';
+ if(/news|новост|газет|репорт|уведом|bell|calendar/.test(s))return 'Новости';
+ if(/politic|полит|выбор|флаг|государ|парламент/.test(s))return 'Политика';
+ if(/war|войн|арм|танк|ракета|оборона/.test(s))return 'Войны';
+ if(/code|код|terminal|database|laptop|ноутбук|software|разработ|программ/.test(s))return 'IT';
+ if(/business|финанс|деньг|выруч|рост|chart|counter|coin|wallet|cart|percent|график|счётчик/.test(s))return 'Бизнес и финансы';
+ if(/book|книг|обуч|образован|учеб|знани/.test(s))return 'Образование';
+ if(/science|наук|атом|молекул|эксперимент/.test(s))return 'Наука';
+ if(/sport|спорт|кубок|трофей|мяч/.test(s))return 'Спорт';
+ if(/forest|nature|природ|дерев|лист|цвет|солнц|луна|облако/.test(s))return 'Природа';
+ if(/food|еда|ресторан|кофе|кухн/.test(s))return 'Еда';
+ if(/фон|gradient|grid|particles|rings|tunnel|plasma|aurora|waves|stars|noise|speed|rays|checker|dotgrid|diag|scan|char_|персонаж|monster|blob|orb|ghost|cat|dino|маскот/.test(s))return 'Абстрактное';
+ return 'Общие элементы';
+}
+LIB.forEach(it=>{it.domain=libraryDomain(it)});
 /* ================= SCHEMA / VALIDATOR ================= */
 let S=null;
 function norm(j,tot){
@@ -830,14 +859,23 @@ $$('nav button').forEach(b=>b.onclick=()=>{$$('nav button').forEach(x=>x.classLi
 /* библиотека */
 const grid=$('#grid'),io=new IntersectionObserver(es=>es.forEach(e=>e.target._v=e.isIntersecting));
 LIB.forEach(it=>{const b=document.createElement('button');b.className='card';b.dataset.s=(it.cat+' '+it.name+' '+it.tags).toLowerCase();
-  b.innerHTML=`<canvas width="320" height="180"></canvas><b>${it.name}</b><small>${it.cat}${FX.concat(BG,TR,CH).includes(it.id)?' · метка ['+it.id+']':''}</small>`;
+  b.innerHTML=`<canvas width="320" height="180"></canvas><b>${it.name}</b><small>${it.domain}</small>`;
   it.cv=b.querySelector('canvas');it.sc=it.mk();it.el=b;
   b.onclick=()=>{if(it.act)return it.act();if(FX.concat(BG,TR,CH).includes(it.id)){const d=$('#desc');d.value=(d.value+' ['+it.id+']').trim();say('Метка ['+it.id+'] добавлена в описание.')}};
   grid.appendChild(b);io.observe(b)});
 function libFrame(ts){LIB.forEach(it=>{if(it.el.style.display==='none'||!it.el._v)return;const c=it.cv.getContext('2d'),lt=ts%(it.sc.dur);drawScene(c,320,180,{...it.sc,dur:99},lt,PAL.neon)})}
 let cat='',qs='';
-function filt(){LIB.forEach(it=>it.el.style.display=(!cat||it.cat===cat)&&(!qs||it.el.dataset.s.includes(qs))?'':'none')}
-const cb=$('#cats');['',...new Set(LIB.map(i=>i.cat))].forEach(cn=>{const b=document.createElement('button');b.textContent=cn?cn+' '+LIB.filter(i=>i.cat===cn).length:'Все '+LIB.length;if(!cn)b.className='on';b.onclick=()=>{cat=cn;cb.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));filt()};cb.appendChild(b)});
+const catFilter=$('#catfilter');
+LIB_DOMAINS.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;catFilter.appendChild(o)});
+function filt(){
+ let visible=0;
+ LIB.forEach(it=>{
+  const show=(!cat||it.domain===cat)&&(!qs||it.el.dataset.s.includes(qs)||it.domain.toLowerCase().includes(qs));
+  it.el.style.display=show?'':'none';if(show)visible++;
+ });
+ $('#libcount').textContent=(cat||qs)?'Найдено: '+visible+' из '+LIB.length:'Все элементы: '+LIB.length;
+}
+catFilter.onchange=e=>{cat=e.target.value;filt()};
 $('#q').oninput=e=>{qs=e.target.value.toLowerCase().trim();filt()};
 /* настройки */
 $('#key').value=cfg.key;$('#model').value=cfg.model;$('#loc').checked=cfg.local;
