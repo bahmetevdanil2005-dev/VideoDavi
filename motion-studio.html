@@ -246,6 +246,7 @@ function drawText(c,w,h,L,lt,dur,pal){
         else if(fx==='wave'){aa=clamp(ent*2-globalIndex/n);dy=Math.sin(lt*4+globalIndex*.5)*size*.12}
         else if(fx==='glitch'){aa=ent>0?1:0}
         else if(FXE[fx]){const z=FXE[fx](globalIndex,n,wordIndex,nw,ent,lt,size);aa=z.a??1;sc=z.sc??1;sx=z.sx??sc;sy=z.sy??sc;dy=z.dy||0;dx2=z.dx||0;rot=z.rot||0;cc=z.col||null}
+        const timing=L.wordTimes&&L.wordTimes[wordIndex],wordStart=typeof timing==='number'?timing:(timing&&timing.start!=null?timing.start:null),wordEnd=timing&&typeof timing==='object'&&timing.end>wordStart?timing.end:(wordStart==null?null:wordStart+.22),wordQ=wordStart==null?clamp((lt*1.0*nw/Math.max(.3,dur*.78))-wordIndex):clamp((lt-wordStart)/Math.max(.08,(wordEnd-wordStart)||.22)),letterQ=clamp(wordQ*1.7-(k/Math.max(1,line.length))*.55),reveal=letterQ>0?eo(letterQ):0;aa*=reveal;sx*=.35+.85*reveal;sy*=.78+.22*reveal;dy+=(1-reveal)*-size*.18;
         c.save();c.globalAlpha=aa*fade*al;c.translate(x+cw/2+dx2,dy);c.rotate(rot);c.scale(Math.max(sx,.001),Math.max(sy,.001));
         c.fillStyle=cc&&!hl?cc:hl?pal[0]:acc.has(globalIndex)&&col2===col?pal[1]:col2;
         if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.075;c.strokeStyle='rgba(0,0,0,.72)';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=size*.12;c.globalAlpha=aa*fade*.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=aa*fade;c.shadowBlur=0}
@@ -694,7 +695,8 @@ function transitionSound(index,at){
 function music(from){
   stopAudio();if(!S)return;
   const schedule=()=>{const t0=AC.currentTime+.08;S.scenes.forEach((sc,i)=>{if(i===0||sc.start<from-.01)return;transitionSound(i,t0+sc.start-from)})};
-  const ready=ensureAudio();if(ready&&typeof ready.then==='function')ready.then(schedule).catch(e=>say('Не удалось включить звук переходов: '+e.message,1));else schedule();
+  if(AC&&AC.startRendering){schedule();return Promise.resolve()}
+  return ensureAudio().then(schedule).catch(e=>{say('Не удалось включить звук переходов: '+e.message,1);throw e});
 }
 function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);nodes.push(o)})}
 /* ================= ENGINE ================= */
@@ -823,7 +825,7 @@ async function viaWorker(isEdit){
   const an=$('#adn').value.trim(),ad=an?{name:an,pitch:$('#adp').value.trim(),label:$('#adl').checked}:null;
   const base=cfg.worker.replace(/\/+$/,'');
   const body=isEdit?{scenario:{title:S.title,music:S.music,scenes:S.scenes.map(s=>({dur:+s.dur.toFixed(1),bg:s.bg,trans:s.trans,sfx:s.sfx,layers:s.layers}))},instruction:$('#edit').value.trim(),catalog}
-    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:ui.style,ad:ad?{...ad,placement:'только отдельная последняя сцена после полного содержательного объяснения темы; последние 15–20% хронометража'}:null,catalog,hint:LIBHINT+'\nОбязательный редакционный принцип: сначала полноценный разговорный образовательный сценарий с логическим развитием темы и конкретными примерами; не использовать рекламные заголовки вместо объяснения. Если рекламодатель задан — реклама только отдельным финальным блоком в последних 15–20% после вывода; до этого никаких упоминаний бренда. Если рекламодатель не задан — рекламы нет. Каждая сцена содержит естественную произносимую реплику. Визуальные слои строго иллюстрируют смысл реплики; графики и туннели не добавлять ради декора.'};
+    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:ui.style,ad:ad?{...ad,placement:'только отдельная последняя сцена после полного содержательного объяснения темы; последние 15–20% хронометража'}:null,catalog,hint:LIBHINT+'\nТекстовая анимация обязательна: каждая основная реплика раскрывается постепенно, слово за словом, затем буквы получают короткую упругую анимацию. Если в слое есть wordTimes — синхронизируй их с аудио-таймкодами; если озвучки и таймингов пока нет — используй равномерный ритм внутри сцены, начиная сразу после старта реплики. Не показывай всю фразу одним кадром.\nОбязательный редакционный принцип: сначала полноценный разговорный образовательный сценарий с логическим развитием темы и конкретными примерами; не использовать рекламные заголовки вместо объяснения. Если рекламодатель задан — реклама только отдельным финальным блоком в последних 15–20% после вывода; до этого никаких упоминаний бренда. Если рекламодатель не задан — рекламы нет. Каждая сцена содержит естественную произносимую реплику. Основной текст всегда раскрывается постепенно по словам, а не появляется целым блоком. Визуальные слои строго иллюстрируют смысл реплики; графики и туннели не добавлять ради декора.'};
   say(isEdit?'Режиссёр вносит правку…':'Режиссёр пишет хук, удержание и связку с рекламой…');
   const r=await fetch(base+(isEdit?'/edit':'/director'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||('ошибка '+r.status));
