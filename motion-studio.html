@@ -240,21 +240,15 @@ function drawText(c,w,h,L,lt,dur,pal){
         const cw=c.measureText(ch).width;
         if(ch===' '){wordIndex++;x+=cw;continue}
         let aa=1,sc=1,sx=1,sy=1,dy=0,dx2=0,rot=0,cc=null;
-        if(fx==='type')aa=globalIndex<ent*n?1:0;
-        else if(fx==='words'){const timing=L.wordTimes&&L.wordTimes[wordIndex];const st=typeof timing==='number'?timing:(timing&&timing.start!=null?timing.start:null);const en=typeof timing==='object'&&timing&&timing.end>st?timing.end:st==null?null:st+.22;const q=st==null?clamp(ent*nw-wordIndex):clamp((lt-st)/Math.max(.08,(en-st)||.22));const cq=clamp(q*1.7-(k/Math.max(1,line.length))*.55);aa=cq>0?1:0;sc=ob(cq);sx=.35+.85*eo(cq);sy=.78+.22*eo(cq);dy=(1-eo(cq))*-size*.22}
-        else if(fx==='pop'){aa=clamp(ent*2);sc=ob(ent)}
-        else if(fx==='wave'){aa=clamp(ent*2-globalIndex/n);dy=Math.sin(lt*4+globalIndex*.5)*size*.12}
-        else if(fx==='glitch'){aa=ent>0?1:0}
-        else if(FXE[fx]){const z=FXE[fx](globalIndex,n,wordIndex,nw,ent,lt,size);aa=z.a??1;sc=z.sc??1;sx=z.sx??sc;sy=z.sy??sc;dy=z.dy||0;dx2=z.dx||0;rot=z.rot||0;cc=z.col||null}
-        const timing=L.wordTimes&&L.wordTimes[wordIndex],wordStart=typeof timing==='number'?timing:(timing&&timing.start!=null?timing.start:null),wordEnd=timing&&typeof timing==='object'&&timing.end>wordStart?timing.end:(wordStart==null?null:wordStart+.22),wordQ=wordStart==null?clamp((lt*1.0*nw/Math.max(.3,dur*.78))-wordIndex):clamp((lt-wordStart)/Math.max(.08,(wordEnd-wordStart)||.22)),letterQ=clamp(wordQ*1.7-(k/Math.max(1,line.length))*.55),reveal=letterQ>0?eo(letterQ):0;aa*=reveal;sx*=.35+.85*reveal;sy*=.78+.22*reveal;dy+=(1-reveal)*-size*.18;
-        c.save();c.globalAlpha=aa*fade*al;c.translate(x+cw/2+dx2,dy);c.rotate(rot);c.scale(Math.max(sx,.001),Math.max(sy,.001));
+        // Static text mode: all characters remain visible; no entrance, fade, or per-letter motion.
+        c.save();c.globalAlpha=1;c.translate(x+cw/2,0);
         c.fillStyle=cc&&!hl?cc:hl?pal[0]:acc.has(globalIndex)&&col2===col?pal[1]:col2;
-        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.075;c.strokeStyle='rgba(0,0,0,.72)';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=size*.12;c.globalAlpha=aa*fade*.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=aa*fade;c.shadowBlur=0}
+        if(!hl&&al===1){c.lineJoin='round';c.lineWidth=size*.075;c.strokeStyle='rgba(0,0,0,.72)';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=size*.12;c.globalAlpha=.85;c.strokeText(ch,-cw/2,0);c.globalAlpha=1;c.shadowBlur=0}
         c.fillText(ch,-cw/2,0);c.restore();x+=cw;globalIndex++;k++;
       }
       c.restore();
     };
-    if(fx==='glitch'&&rnd(Math.floor(lt*18))>.55){pass(-size*.07,pal[1],.65,false);pass(size*.07,'#00e5ff',.55,false)}
+    if(false){pass(-size*.07,pal[1],.65,false);pass(size*.07,'#00e5ff',.55,false)}
     pass(0,col,1,!!L.hl);
   });
   c.globalAlpha=1;c.restore();
@@ -719,10 +713,10 @@ function frame(){
   drawScene(cx,w,h,sc,clamp(t-sc.start,0,sc.dur),S.pal);post(cx,w,h,t,S.pal);
 }
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
-function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';try{ensureAudio().then(()=>{if(!playing)return;lastSoundScene=sceneIndexAt(t)}).catch(e=>{playing=false;$('#pp').textContent='Играть';say('Не удалось включить звук: '+e.message,1)})}catch(e){playing=false;$('#pp').textContent='Играть';say('Не удалось включить звук: '+e.message,1)}}
+function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';const unlock=()=>{if(!playing)return;lastSoundScene=sceneIndexAt(t)};try{const ready=ensureAudio();if(AC&&AC.state==='suspended')AC.resume().then(unlock).catch(e=>say('Звук заблокирован браузером: '+e.message,1));else Promise.resolve(ready).then(unlock).catch(e=>say('Не удалось включить звук: '+e.message,1))}catch(e){say('Не удалось включить звук: '+e.message,1)}}
 function pause(){playing=false;lastSoundScene=-1;stopAudio();$('#pp').textContent='Играть'}
 function loop(now){
-  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{transitionSound(si)}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
+  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running')transitionSound(si);else ensureAudio().then(()=>transitionSound(si)).catch(e=>say('Ошибка звука перехода: '+e.message,1))}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
   if(!fastExp){frame();if(S){$('#sc').value=t/S.dur*1000;$('#tm').textContent=fmt(t)+' / '+fmt(S.dur)}}
   if($('#t-lib').classList.contains('on'))libFrame(now/1000);
   requestAnimationFrame(loop);
