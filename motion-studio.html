@@ -241,7 +241,7 @@ function drawText(c,w,h,L,lt,dur,pal){
         if(ch===' '){wordIndex++;x+=cw;continue}
         let aa=1,sc=1,sx=1,sy=1,dy=0,dx2=0,rot=0,cc=null;
         if(fx==='type')aa=globalIndex<ent*n?1:0;
-        else if(fx==='words'){const q=clamp(ent*nw-wordIndex);const cq=clamp(q*1.7-(k/Math.max(1,line.length))*.55);aa=cq>0?1:0;sc=ob(cq);sx=.35+.85*eo(cq);sy=.78+.22*eo(cq);dy=(1-eo(cq))*-size*.22}
+        else if(fx==='words'){const timing=L.wordTimes&&L.wordTimes[wordIndex];const st=typeof timing==='number'?timing:(timing&&timing.start!=null?timing.start:null);const en=typeof timing==='object'&&timing&&timing.end>st?timing.end:st==null?null:st+.22;const q=st==null?clamp(ent*nw-wordIndex):clamp((lt-st)/Math.max(.08,(en-st)||.22));const cq=clamp(q*1.7-(k/Math.max(1,line.length))*.55);aa=cq>0?1:0;sc=ob(cq);sx=.35+.85*eo(cq);sy=.78+.22*eo(cq);dy=(1-eo(cq))*-size*.22}
         else if(fx==='pop'){aa=clamp(ent*2);sc=ob(ent)}
         else if(fx==='wave'){aa=clamp(ent*2-globalIndex/n);dy=Math.sin(lt*4+globalIndex*.5)*size*.12}
         else if(fx==='glitch'){aa=ent>0?1:0}
@@ -539,8 +539,8 @@ function norm(j,tot){
     dur:clamp(+s.dur||4,1.2,15),bg:BG.includes(s.bg)?s.bg:BG[i%3],trans:TR.includes(s.trans)?s.trans:TR[i%4],sfx:(Array.isArray(s.sfx)?s.sfx:[]).slice(0,6).filter(x=>x&&SFX[x.id]).map(x=>({at:clamp(+x.at||0,0,10),id:x.id})),
     layers:(Array.isArray(s.layers)?s.layers:[]).slice(0,6).map(L=>{
       const type=L.type==='emoji'?'icon':['text','counter','chart','shape','char','icon','mega','three'].includes(L.type)?L.type:'text';
-      return {type,dir:['h','v','full'].includes(L.dir)?L.dir:'h',rep:clamp(+L.rep||5,0,10),model:TH3.includes(L.model)?L.model:'planet',name:ICO[L.name]?L.name:(EMI[L.text]||'sparkles'),who:WHO.includes(L.who)?L.who:'monster',state:['jump','talk','wave','happy'].includes(L.state)?L.state:'idle',fx:FX.includes(L.fx)?L.fx:'pop',kind:CH.includes(L.kind)?L.kind:'stairs',shape:SHP.includes(L.shape)?L.shape:'circle',
-        text:String(L.text||'').slice(0,120),upper:L.upper!==false,y:clamp(+L.y||.5,.08,.92),x:clamp(+L.x||.5,.05,.95),size:clamp(+L.size||.085,.03,.45),hl:!!L.hl,
+      return {type,dir:['h','v','full'].includes(L.dir)?L.dir:'h',rep:clamp(+L.rep||5,0,10),model:TH3.includes(L.model)?L.model:'planet',name:ICO[L.name]?L.name:(EMI[L.text]||'sparkles'),who:WHO.includes(L.who)?L.who:'monster',state:['jump','talk','wave','happy'].includes(L.state)?L.state:'idle',fx:FX.includes(L.fx)?L.fx:'words',kind:CH.includes(L.kind)?L.kind:'stairs',shape:SHP.includes(L.shape)?L.shape:'circle',
+        text:String(L.text||'').slice(0,120),wordTimes:Array.isArray(L.wordTimes)?L.wordTimes.slice(0,40).map(x=>typeof x==='number'?Math.max(0,+x||0):({start:Math.max(0,+x.start||0),end:Math.max(0,+x.end||0)})):undefined,upper:L.upper!==false,y:clamp(+L.y||.5,.08,.92),x:clamp(+L.x||.5,.05,.95),size:clamp(+L.size||.085,.03,.45),hl:!!L.hl,
         at:clamp(+L.at||0,0,10),to:+L.to||100,suffix:String(L.suffix||'').slice(0,4),values:Array.isArray(L.values)?L.values.slice(0,10):undefined}})}));
   const sum=sc.reduce((a,s)=>a+s.dur,0),f=total/sum;let st=0;
   sc.forEach(s=>{s.dur=Math.max(1.2,s.dur*f);s.start=st;st+=s.dur});
@@ -681,25 +681,25 @@ async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return n
 let AC,DEST,nodes=[];
 function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination()}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
 function stopAudio(){nodes.forEach(o=>{try{o.stop()}catch(e){}});nodes=[]}
+function sceneIndexAt(sec){if(!S)return -1;for(let i=0;i<S.scenes.length;i++)if(sec<S.scenes[i].start+S.scenes[i].dur)return i;return S.scenes.length-1}
+function transitionSound(index,at){
+  if(!AC||!S||index<=0)return;
+  const tr=S.scenes[index].trans||'cut',kind=/fade|dissolve/i.test(tr)?'soft':/flash|wipe|slide|push|split|blinds|circle|twirl|zoom|slideup|glitch/i.test(tr)?'whoosh':'tap';
+  const t0=at==null?AC.currentTime+.015:at,g=AC.createGain();g.gain.value=.8;g.connect(AC.destination);g.connect(DEST);
+  const dur=kind==='soft'?.42:kind==='whoosh'?.28:.12,count=Math.ceil(AC.sampleRate*dur),buf=AC.createBuffer(1,count,AC.sampleRate),data=buf.getChannelData(0);
+  for(let i=0;i<count;i++){const env=kind==='soft'?Math.sin(Math.PI*i/count):kind==='whoosh'?Math.sin(Math.PI*i/count)**1.5:Math.exp(-i/(count*.12));data[i]=(Math.random()*2-1)*env}
+  const src=AC.createBufferSource(),filter=AC.createBiquadFilter(),gain=AC.createGain();src.buffer=buf;filter.type=kind==='tap'?'lowpass':'bandpass';filter.frequency.setValueAtTime(kind==='tap'?1200:5200,t0);filter.frequency.exponentialRampToValueAtTime(kind==='tap'?180:650,t0+dur);filter.Q.value=kind==='tap'?.7:.8;gain.gain.setValueAtTime(kind==='soft'?.16:.32,t0);gain.gain.exponentialRampToValueAtTime(.001,t0+dur);src.connect(filter);filter.connect(gain);gain.connect(g);src.start(t0);src.stop(t0+dur+.02);nodes.push(src);
+  if(kind!=='soft'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(kind==='tap'?180:110,t0);o.frequency.exponentialRampToValueAtTime(45,t0+.16);og.gain.setValueAtTime(kind==='tap'?.12:.2,t0);og.gain.exponentialRampToValueAtTime(.001,t0+.18);o.connect(og);og.connect(g);o.start(t0);o.stop(t0+.2);nodes.push(o)}
+}
 function music(from){
   stopAudio();if(!S)return;
-  const ready=ensureAudio();
-  const schedule=()=>{
-    const t0=AC.currentTime+.08;
-    S.scenes.forEach((sc,i)=>{
-      if(sc.start<from-.01)return;
-      const tr=sc.trans||'cut';
-      const id=/flash|wipe|slide|push|split|blinds|circle|twirl|zoom|slideup/i.test(tr)?'whoosh':/fade|dissolve/i.test(tr)?'riser':/impact|crash/i.test(tr)?'hit':'whoosh';
-      sfx(id,t0+Math.max(0,sc.start-from));
-    });
-  };
-  if(ready&&typeof ready.then==='function')ready.then(schedule).catch(e=>say('Не удалось включить звук переходов: '+e.message,1));
-  else schedule();
+  const schedule=()=>{const t0=AC.currentTime+.08;S.scenes.forEach((sc,i)=>{if(i===0||sc.start<from-.01)return;transitionSound(i,t0+sc.start-from)})};
+  const ready=ensureAudio();if(ready&&typeof ready.then==='function')ready.then(schedule).catch(e=>say('Не удалось включить звук переходов: '+e.message,1));else schedule();
 }
 function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);nodes.push(o)})}
 /* ================= ENGINE ================= */
 const cv=$('#cv'),cx=cv.getContext('2d');
-let t=0,playing=false,last=0,exporting=false,rec=null;
+let t=0,playing=false,last=0,exporting=false,rec=null,lastSoundScene=-1;
 function dims(){const[d,e]=DIM[ui.format];cv.width=d;cv.height=e}
 let NZ=null,GL=null;
 function post(c,w,h,t,pal){
@@ -717,10 +717,10 @@ function frame(){
   drawScene(cx,w,h,sc,clamp(t-sc.start,0,sc.dur),S.pal);post(cx,w,h,t,S.pal);
 }
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
-function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();$('#pp').textContent='Пауза';try{ensureAudio().then(()=>{if(playing)music(t)}).catch(e=>say('Не удалось включить звук: '+e.message,1))}catch(e){say('Не удалось включить звук: '+e.message,1)}}
-function pause(){playing=false;stopAudio();$('#pp').textContent='Играть'}
+function play(){if(!S)return;if(t>=S.dur-.02)t=0;playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';try{ensureAudio().then(()=>{if(!playing)return;lastSoundScene=sceneIndexAt(t)}).catch(e=>{playing=false;$('#pp').textContent='Играть';say('Не удалось включить звук: '+e.message,1)})}catch(e){playing=false;$('#pp').textContent='Играть';say('Не удалось включить звук: '+e.message,1)}}
+function pause(){playing=false;lastSoundScene=-1;stopAudio();$('#pp').textContent='Играть'}
 function loop(now){
-  if(playing){t+=(now-last)/1000;last=now;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
+  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{transitionSound(si)}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
   if(!fastExp){frame();if(S){$('#sc').value=t/S.dur*1000;$('#tm').textContent=fmt(t)+' / '+fmt(S.dur)}}
   if($('#t-lib').classList.contains('on'))libFrame(now/1000);
   requestAnimationFrame(loop);
@@ -803,7 +803,7 @@ function addScene(sc){
   const ns=norm({scenes:[sc]},sc.dur).scenes[0];if(!S)S={pal:PAL[ui.style]||PAL.neon,dur:0,scenes:[],title:'video'};
   ns.start=S.dur;S.scenes.push(ns);S.dur+=ns.dur;t=ns.start;pause();play();say('Сцена добавлена в видео: всего '+S.scenes.length+', '+Math.round(S.dur)+' с.');
 }
-function setScenario(s){S=s;t=0;pause();play()}
+function setScenario(s){S=s;t=0;pause();frame();}
 async function generate(user,isEdit){
   const d=$('#desc').value.trim();if(!d)return say('Опишите, о чём должно быть видео.',1);
   $('#gen').disabled=$('#apply').disabled=true;say('Собираю сценарий…');
