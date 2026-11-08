@@ -1847,7 +1847,7 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
   /* ==========================================================
      3. ИКОНКИ (10): контуры 24×24
      ========================================================== */
-  const ICONS = {
+  const NEWS_ICONS = {
     newspaper: ["Газета", "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2 M18 14h-8 M15 18h-5 M10 6h8v4h-8V6Z"],
     mic: ["Микрофон", "M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v3"],
     video: ["Видеокамера", "m22 8-6 4 6 4V8Z M4 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"],
@@ -2101,9 +2101,9 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
     addCard({ id, cat: "Фон", name: "Новости: " + names[id], tags: "новости медиа сми фон " + names[id], mk: () => ({ dur: 6, bg: id, layers: [] }),
       act: scene({ dur: 4, bg: id, trans: "fade", sfx: [{ at: 0, id: "whoosh" }], layers: [{ type: "text", fx: "words", text: "Главное *за день*", y: 0.5, size: 0.09 }] }) });
   });
-  Object.keys(ICONS).forEach(id => {
-    ICO[id] = ICONS[id][1]; ICN.push([id, ICONS[id][0]]);
-    addCard({ id: "ico_" + id, cat: "Иконка", name: "Новости: " + ICONS[id][0], tags: "новости медиа иконка " + id + " " + ICONS[id][0], mk: () => ({ dur: 3, bg: "dotgrid", layers: [{ type: "icon", name: id, y: 0.5, size: 0.4 }] }),
+  Object.keys(NEWS_ICONS).forEach(id => {
+    ICO[id] = NEWS_ICONS[id][1]; ICN.push([id, NEWS_ICONS[id][0]]);
+    addCard({ id: "ico_" + id, cat: "Иконка", name: "Новости: " + NEWS_ICONS[id][0], tags: "новости медиа иконка " + id + " " + NEWS_ICONS[id][0], mk: () => ({ dur: 3, bg: "dotgrid", layers: [{ type: "icon", name: id, y: 0.5, size: 0.4 }] }),
       act: scene({ dur: 3.5, bg: "dotgrid", trans: "circle", sfx: [{ at: 0, id: "pop" }], layers: [{ type: "icon", name: id, y: 0.45, size: 0.4 }] }) });
   });
   Object.keys(shapeFns).forEach(id => {
