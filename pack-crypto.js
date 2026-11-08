@@ -9,8 +9,22 @@
   "use strict";
   if (window.__packCrypto) return;
 
-  const need = ["BG","ICO","ICN","N","SHP","TH3","LIB","BUSY","drawBg","drawShape","thBuild","clamp","eo","ob","rnd"];
-  const missing = need.filter(n => { try { return typeof (0, eval)(n) === "undefined"; } catch (e) { return true; } });
+  const missing = [];
+  if (typeof BG === "undefined") missing.push("BG");
+  if (typeof ICO === "undefined") missing.push("ICO");
+  if (typeof ICN === "undefined") missing.push("ICN");
+  if (typeof N === "undefined") missing.push("N");
+  if (typeof SHP === "undefined") missing.push("SHP");
+  if (typeof TH3 === "undefined") missing.push("TH3");
+  if (typeof LIB === "undefined") missing.push("LIB");
+  if (typeof BUSY === "undefined") missing.push("BUSY");
+  if (typeof drawBg !== "function") missing.push("drawBg");
+  if (typeof drawShape !== "function") missing.push("drawShape");
+  if (typeof thBuild !== "function") missing.push("thBuild");
+  if (typeof clamp !== "function") missing.push("clamp");
+  if (typeof eo !== "function") missing.push("eo");
+  if (typeof ob !== "function") missing.push("ob");
+  if (typeof rnd !== "function") missing.push("rnd");
   if (missing.length) { console.warn("Пак «Крипто» не подключён, нет:", missing.join(", ")); return; }
   window.__packCrypto = true;
 
