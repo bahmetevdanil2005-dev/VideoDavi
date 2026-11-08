@@ -757,6 +757,20 @@ async function createVoice(){
     const bytes=await response.arrayBuffer();
     await ensureAudio();
     voiceBuffer=await AC.decodeAudioData(bytes.slice(0));
+    // Нормализуем тихую дорожку, сохраняя исходную динамику, если уровень уже достаточный.
+    let peak=0;
+    for(let ch=0;ch<voiceBuffer.numberOfChannels;ch++){
+      const samples=voiceBuffer.getChannelData(ch);
+      for(let i=0;i<samples.length;i++) peak=Math.max(peak,Math.abs(samples[i]));
+    }
+    if(peak<0.00001) throw new Error('Gemini вернул пустую (беззвучную) аудиодорожку');
+    if(peak<0.75){
+      const gain=Math.min(12,0.85/peak);
+      for(let ch=0;ch<voiceBuffer.numberOfChannels;ch++){
+        const samples=voiceBuffer.getChannelData(ch);
+        for(let i=0;i<samples.length;i++) samples[i]=Math.max(-1,Math.min(1,samples[i]*gain));
+      }
+    }
     $('#tts-st').textContent='Озвучка готова · '+Math.round(voiceBuffer.duration)+' сек.';
     say('Озвучка готова. Нажми «Играть», чтобы прослушать.');
   }catch(e){voiceBuffer=null;$('#tts-st').textContent='Не удалось создать озвучку';say('Gemini TTS: '+e.message,1)}
@@ -838,6 +852,11 @@ async function renderAudio(){
 async function startExport(){
   if(!S)return say('Сначала сгенерируйте видео.',1);
   if(!(window.VideoEncoder&&window.VideoFrame)){say('Быстрый экспорт не поддерживается этим браузером. Включаю запись в реальном времени.',1);return startRec()}
+  // Без AudioEncoder быстрый MP4 получился бы без звука — используем запись с AudioContext.
+  if(voiceBuffer&&!(window.AudioEncoder&&window.OfflineAudioContext)){
+    say('На этом телефоне быстрый экспорт не поддерживает звук. Включаю запись со звуком в реальном времени.');
+    return startRec();
+  }
   pause();fastExp=true;cancelExp=false;$('#dl').disabled=true;$('#res').innerHTML='';$('#prog').style.display='block';
   const T0=performance.now();let encErr=null;
   try{
@@ -848,7 +867,11 @@ async function startExport(){
     let vcfg=null;for(const codec of ['avc1.640033','avc1.64002A','avc1.4d002a','avc1.42001f']){const c={codec,width:W,height:H,bitrate:Math.round(W*H*fps*.12),framerate:fps};if((await VideoEncoder.isConfigSupported(c)).supported){vcfg=c;break}}
     if(!vcfg)throw new Error('кодек H.264 недоступен');
     let abuf=null;
-    if((voiceBuffer||cfg.mus||S.scenes.some(sc=>(sc.sfx||[]).length))&&window.AudioEncoder&&window.OfflineAudioContext){const ac={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2,bitrate:128000};if((await AudioEncoder.isConfigSupported(ac)).supported){prog(.02,'Собираю звук…');abuf=await renderAudio()}}
+    if((voiceBuffer||cfg.mus||S.scenes.some(sc=>(sc.sfx||[]).length))&&window.AudioEncoder&&window.OfflineAudioContext){
+      const ac={codec:'mp4a.40.2',sampleRate:44100,numberOfChannels:2,bitrate:128000};
+      if((await AudioEncoder.isConfigSupported(ac)).supported){prog(.02,'Собираю звук…');abuf=await renderAudio()}
+      else if(voiceBuffer){fastExp=false;dims();$('#prog').style.display='none';say('Телефон не поддерживает кодирование звука для быстрого MP4. Переключаюсь на запись со звуком.');return startRec()}
+    }
     const target=new ArrayBufferTarget(),muxer=new Muxer({target,video:{codec:'avc',width:W,height:H},...(abuf?{audio:{codec:'aac',sampleRate:44100,numberOfChannels:2}}:{}),fastStart:'in-memory'});
     const ve=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>{encErr=e}});ve.configure(vcfg);
     cv.width=W;cv.height=H;
