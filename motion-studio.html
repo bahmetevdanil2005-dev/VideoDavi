@@ -211,24 +211,61 @@ function drawBg(c,w,h,type,t,pal){
 function wrap(c,str,maxW){const ws=String(str).split(/\s+/).filter(Boolean),ls=[];let cur='';ws.forEach(x=>{const nx=cur?cur+' '+x:x;if(c.measureText(nx).width>maxW&&cur){ls.push(cur);cur=x}else cur=nx});if(cur)ls.push(cur);return ls}
 let BUSYBG=false,LIGHTP=false;const BUSY=['plasma','matrix','aurora','stars','speed','rays','waves','tunnelh','tunnelv','noise','checker','diag','particles','scan'];
 function drawText(c,w,h,L,lt,dur,pal){
-  const raw=String(L.text||'').replace(/\*/g,'').trim();
-  if(!raw)return;
-  const words=raw.split(/\s+/).filter(Boolean);
-  if(!words.length)return;
-  // Faster word-by-word captions with a brief, clean fade and scale-in.
-  const usable=Math.max(.5,dur-.12),per=Math.max(.2,usable/words.length);
-  const idx=Math.min(words.length-1,Math.floor(Math.max(0,lt)/per));
-  const local=Math.max(0,lt-idx*per),enter=clamp(local/.105),ease=1-Math.pow(1-enter,3);
-  const word=String(words[idx]||'').toLocaleUpperCase('ru-RU');
-  const maxW=w*.88,minDim=Math.min(w,h);
-  let size=Math.min((L.size||.085)*w*2.7,h*.2,minDim*.25);
-  c.save();c.textAlign='center';c.textBaseline='middle';c.font='700 '+size+'px '+FONT;
-  while(c.measureText(word).width>maxW&&size>minDim*.07){size*=.9;c.font='700 '+size+'px '+FONT}
-  const x=w/2,y=clamp(L.y==null?.72:L.y,.18,.84)*h;
-  c.globalAlpha=.12+.88*ease;
-  c.translate(x,y);c.scale(.94+.06*ease, .94+.06*ease);
-  c.fillStyle=L.color||pal[2];
-  c.fillText(word,0,0);
+  const source=String(L.text||'').trim();
+  if(!source)return;
+  const tokens=source.split(/\s+/).filter(Boolean).map(token=>({
+    text:token.replace(/\*/g,'').toLocaleUpperCase('ru-RU'),
+    highlight:token.includes('*')
+  })).filter(x=>x.text);
+  if(!tokens.length)return;
+
+  // Reveal words one by one, keeping every earlier word visible.
+  const usable=Math.max(.5,dur-.08),per=Math.max(.16,usable/tokens.length);
+  const elapsed=Math.max(0,lt),visible=Math.min(tokens.length,Math.floor(elapsed/per)+1);
+  const active=visible-1,local=Math.max(0,elapsed-active*per);
+  const enter=clamp(local/.14),ease=1-Math.pow(1-enter,3);
+
+  const maxW=w*.88,minDim=Math.min(w,h),lineLimit=3;
+  let size=Math.min((L.size||.085)*w*2.7,h*.19,minDim*.23);
+  let lines=[];
+  const makeLines=()=>{
+    c.font='800 '+size+'px '+FONT;
+    const result=[];let line=[],width=0;
+    tokens.forEach(token=>{
+      const tw=c.measureText(token.text).width,space=line.length?c.measureText(' ').width:0;
+      if(line.length&&width+space+tw>maxW){result.push(line);line=[{...token,width:tw}];width=tw}
+      else{line.push({...token,width:tw,space});width+=space+tw}
+    });
+    if(line.length)result.push(line);
+    return result;
+  };
+  lines=makeLines();
+  while((lines.length>lineLimit||lines.length*size*1.16>h*.42)&&size>minDim*.052){
+    size*=.92;lines=makeLines();
+  }
+  c.save();c.font='800 '+size+'px '+FONT;c.textBaseline='middle';
+  const lineH=size*1.16,totalH=lines.length*lineH;
+  const centerY=clamp(L.y==null?.62:L.y,.16,.84)*h;
+  const top=clamp(centerY-totalH/2,h*.06,h*.94-totalH);
+  let wordIndex=0;
+  lines.forEach((line,row)=>{
+    const lineWidth=line.reduce((sum,item,i)=>sum+(i?c.measureText(' ').width:0)+item.width,0);
+    let x=(w-lineWidth)/2;
+    const y=top+row*lineH+lineH/2;
+    line.forEach((item)=>{
+      const index=wordIndex++;
+      if(index<visible){
+        const isActive=index===active;
+        c.save();
+        if(isActive){c.globalAlpha=.18+.82*ease;c.translate(x+item.width/2,y);c.scale(.94+.06*ease,.94+.06*ease);c.translate(-(x+item.width/2),-y)}
+        c.fillStyle=item.highlight?(L.highlightColor||pal[1]):(L.color||pal[2]);
+        c.textAlign='left';
+        c.fillText(item.text,x,y);
+        c.restore();
+      }
+      x+=item.width+c.measureText(' ').width;
+    });
+  });
   c.restore();
 }
 function drawCounter(c,w,h,L,lt,dur,pal){
