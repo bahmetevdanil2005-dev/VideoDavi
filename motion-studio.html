@@ -219,40 +219,48 @@ function drawText(c,w,h,L,lt,dur,pal){
   })).filter(x=>x.text);
   if(!tokens.length)return;
 
-  // Reveal words one by one, keeping every earlier word visible.
+  // Reveal words one by one; previously revealed words stay visible.
   const usable=Math.max(.5,dur-.08),per=Math.max(.16,usable/tokens.length);
   const elapsed=Math.max(0,lt),visible=Math.min(tokens.length,Math.floor(elapsed/per)+1);
   const active=visible-1,local=Math.max(0,elapsed-active*per);
   const enter=clamp(local/.14),ease=1-Math.pow(1-enter,3);
 
-  const maxW=w*.88,minDim=Math.min(w,h),lineLimit=3;
-  let size=Math.min((L.size||.085)*w*2.7,h*.19,minDim*.23);
+  const maxW=w*.88,minDim=Math.min(w,h),lineLimit=6;
+  const minSize=Math.max(30,minDim*.058);
+  let size=Math.max(minSize,Math.min((L.size||.085)*w*2.7,h*.19,minDim*.23));
   let lines=[];
   const makeLines=()=>{
     c.font='800 '+size+'px '+FONT;
     const result=[];let line=[],width=0;
+    const spaceW=c.measureText(' ').width;
     tokens.forEach(token=>{
-      const tw=c.measureText(token.text).width,space=line.length?c.measureText(' ').width:0;
-      if(line.length&&width+space+tw>maxW){result.push(line);line=[{...token,width:tw}];width=tw}
-      else{line.push({...token,width:tw,space});width+=space+tw}
+      const tw=c.measureText(token.text).width;
+      if(line.length&&width+spaceW+tw>maxW){result.push(line);line=[{...token,width:tw}];width=tw}
+      else{line.push({...token,width:tw});width+= (line.length>1?spaceW:0)+tw}
     });
     if(line.length)result.push(line);
     return result;
   };
   lines=makeLines();
-  while((lines.length>lineLimit||lines.length*size*1.16>h*.42)&&size>minDim*.052){
-    size*=.92;lines=makeLines();
+  // Fit both dimensions, preserving a readable minimum size on portrait canvases.
+  while(size>minSize&&(lines.length>lineLimit||lines.length*size*1.16>h*.54||tokens.some(t=>c.measureText(t.text).width>maxW))){
+    size=Math.max(minSize,size*.92);
+    lines=makeLines();
+    c.font='800 '+size+'px '+FONT;
   }
+  // Rebuild widths using the final font and never allow a word to exceed the frame.
   c.save();c.font='800 '+size+'px '+FONT;c.textBaseline='middle';
+  const spaceW=c.measureText(' ').width;
+  lines=makeLines();
   const lineH=size*1.16,totalH=lines.length*lineH;
-  const centerY=clamp(L.y==null?.62:L.y,.16,.84)*h;
-  const top=clamp(centerY-totalH/2,h*.06,h*.94-totalH);
+  const centerY=clamp(L.y==null?.62:L.y,.12,.88)*h;
+  const top=Math.max(h*.035,Math.min(centerY-totalH/2,h*.965-totalH));
   let wordIndex=0;
   lines.forEach((line,row)=>{
-    const lineWidth=line.reduce((sum,item,i)=>sum+(i?c.measureText(' ').width:0)+item.width,0);
+    const lineWidth=line.reduce((sum,item,i)=>sum+(i?spaceW:0)+item.width,0);
     let x=(w-lineWidth)/2;
     const y=top+row*lineH+lineH/2;
-    line.forEach((item)=>{
+    line.forEach(item=>{
       const index=wordIndex++;
       if(index<visible){
         const isActive=index===active;
@@ -260,10 +268,10 @@ function drawText(c,w,h,L,lt,dur,pal){
         if(isActive){c.globalAlpha=.18+.82*ease;c.translate(x+item.width/2,y);c.scale(.94+.06*ease,.94+.06*ease);c.translate(-(x+item.width/2),-y)}
         c.fillStyle=item.highlight?(L.highlightColor||pal[1]):(L.color||pal[2]);
         c.textAlign='left';
-        c.fillText(item.text,x,y);
+        c.fillText(item.text,x,y,maxW);
         c.restore();
       }
-      x+=item.width+c.measureText(' ').width;
+      x+=item.width+spaceW;
     });
   });
   c.restore();
