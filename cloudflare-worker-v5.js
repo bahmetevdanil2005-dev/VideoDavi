@@ -181,10 +181,24 @@ async function generateTTS(body, env) {
   }
 
   const data = await response.json();
-  const audioBase64 = data?.output_audio?.data;
+
+  // В REST API аудио находится в steps[].content[].
+  // output_audio — удобное поле SDK, но REST его не добавляет.
+  const stepAudio = (Array.isArray(data?.steps) ? data.steps : [])
+    .filter(step => step?.type === "model_output")
+    .flatMap(step => Array.isArray(step.content) ? step.content : [])
+    .filter(item => item?.type === "audio" && typeof item.data === "string" && item.data.length > 0)
+    .pop();
+  const audioBase64 = data?.output_audio?.data || stepAudio?.data;
+
   if (!audioBase64) {
+    const outputTypes = (Array.isArray(data?.steps) ? data.steps : [])
+      .filter(step => step?.type === "model_output")
+      .flatMap(step => Array.isArray(step.content) ? step.content : [])
+      .map(item => item?.type || "unknown");
     const reason = data?.error?.message || data?.status || "NO_AUDIO";
-    throw new Error("Gemini TTS не вернул аудио: " + reason);
+    throw new Error("Gemini TTS: аудио не найдено (status=" + reason +
+      ", output=" + (outputTypes.join(",") || "пусто") + ")");
   }
 
   const binary = atob(audioBase64);
