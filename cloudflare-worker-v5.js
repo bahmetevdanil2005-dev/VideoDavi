@@ -140,30 +140,31 @@ async function generateTTS(body, env) {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.min(Number(env.TTS_TIMEOUT_MS) || 110000, 120000));
-  const endpoint = GEMINI_API + TTS_MODEL + ":generateContent?key=" + encodeURIComponent(env.GEMINI_API_KEY);
-
   let response;
   try {
-    response = await fetch(endpoint, {
+    response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": env.GEMINI_API_KEY
+      },
       signal: controller.signal,
       body: JSON.stringify({
-        contents: [{
-          role: "user",
-          parts: [{
+        model: TTS_MODEL,
+        input: [{
+          type: "user_input",
+          content: [{
+            type: "text",
             text,
-            speechMetadata: { style }
+            annotations: [{
+              type: "speech_metadata",
+              style
+            }]
           }]
         }],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: voice }
-            },
-            languageCode: "ru-RU"
-          }
+        response_format: { type: "audio" },
+        generation_config: {
+          speech_config: [{ voice }]
         }
       })
     });
@@ -180,20 +181,19 @@ async function generateTTS(body, env) {
   }
 
   const data = await response.json();
-  const part = (data?.candidates?.[0]?.content?.parts || []).find(p => p?.inlineData?.data);
-  if (!part?.inlineData?.data) {
-    const reason = data?.promptFeedback?.blockReason || data?.candidates?.[0]?.finishReason || "NO_AUDIO";
+  const audioBase64 = data?.output_audio?.data;
+  if (!audioBase64) {
+    const reason = data?.error?.message || data?.status || "NO_AUDIO";
     throw new Error("Gemini TTS не вернул аудио: " + reason);
   }
 
-  const mime = String(part.inlineData.mimeType || "audio/wav").toLowerCase();
-  if (!mime.includes("wav")) throw new Error("Gemini вернул неожиданный формат аудио: " + mime);
-
-  const binary = atob(part.inlineData.data);
+  const binary = atob(audioBase64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-  if (bytes.length < 44 || String.fromCharCode(...bytes.slice(0, 4)) !== "RIFF" || String.fromCharCode(...bytes.slice(8, 12)) !== "WAVE") {
+  if (bytes.length < 44 ||
+      String.fromCharCode(...bytes.slice(0, 4)) !== "RIFF" ||
+      String.fromCharCode(...bytes.slice(8, 12)) !== "WAVE") {
     throw new Error("Gemini вернул повреждённый WAV-файл");
   }
   return bytes;
