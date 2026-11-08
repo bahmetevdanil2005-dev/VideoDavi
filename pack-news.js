@@ -416,21 +416,31 @@
   };
 
   M3.n3_globe = pal => {
-    const R = rig(pal), T = R.T;
-    const earth = canvasTex(1024, 512, (x, w, h) => {
-      const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#0f4aa8"); g.addColorStop(0.5, "#1a6ad0"); g.addColorStop(1, "#0f4aa8"); x.fillStyle = g; x.fillRect(0, 0, w, h);
-      const cell = 6; for (let yy = 0; yy < h; yy += cell) for (let xx = 0; xx < w; xx += cell) { const lon = xx / w * TAU - PI, lat = -(yy / h - 0.5) * 2.9; if (land(lon, lat)) { const v = rnd(xx * 0.13 + yy * 0.7); x.fillStyle = Math.abs(lat) > 1.15 ? "#eef5fb" : v > 0.6 ? "#3f9a4a" : v > 0.25 ? "#2f8a3e" : "#c8b36a"; x.fillRect(xx, yy, cell, cell); } }
-      x.fillStyle = "#f4f8fc"; x.fillRect(0, 0, w, 14); x.fillRect(0, h - 16, w, 16);
+    const R = rig(pal), T = R.T, group = new T.Group();
+    R.model.add(group);
+    const ocean = new T.Mesh(new T.SphereGeometry(1.42, 48, 32), new T.MeshStandardMaterial({ color: 0x1769aa, metalness: 0.25, roughness: 0.42 }));
+    group.add(ocean);
+    const landMat = new T.MeshStandardMaterial({ color: 0x55a85a, roughness: 0.82 });
+    const patches = [[-.45,.55,.34,.22],[.25,.35,.25,.42],[-.72,-.12,.18,.38],[.58,-.42,.3,.2],[-.1,-.62,.42,.16]];
+    patches.forEach(([x,y,sx,sy]) => {
+      const z = Math.sqrt(Math.max(.05, 1 - x*x - y*y));
+      const m = new T.Mesh(new T.SphereGeometry(1, 20, 14), landMat);
+      m.scale.set(sx, sy, .035); m.position.set(x*1.43, y*1.43, z*1.43); m.lookAt(x*2, y*2, z*2); group.add(m);
     });
-    const grp = new T.Group(); grp.rotation.z = 0.41; R.model.add(grp);
-    const ball = new T.Mesh(new T.SphereGeometry(1.4, 64, 48), new T.MeshStandardMaterial({ map: earth.tex, roughness: 0.75 })); grp.add(ball);
-    grp.add(new T.Mesh(new T.SphereGeometry(1.5, 48, 32), new T.MeshBasicMaterial({ color: 0x4ab0ff, transparent: true, opacity: 0.22, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false })));
-    const gold = MC("#d7b14f", { gloss: 1, dark: "#3a2a05" }), ring = new T.Mesh(new T.TorusGeometry(1.7, 0.05, 14, 90, PI * 1.1), gold); ring.rotation.set(0, PI / 2, -0.2); ring.position.y = -0.1; R.model.add(ring);
-    const pole = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 3.2, 12), gold); pole.rotation.z = 0.41; grp.add(pole);
-    R.model.add(new T.Mesh(lathe([[0, -2.1], [0.9, -2.1], [0.95, -2.05], [0.8, -1.95], [0.3, -1.85], [0.18, -1.7], [0.18, -1.55]], 48), gold));
-    [[0.3, 0.7], [1.6, 0.55], [-1.6, 0.5]].forEach(([lon, lat]) => { const d = V(cos(lat) * sin(lon), sin(lat), cos(lat) * cos(lon)), pin = new T.Group(), st = bar(V(0, 0, 0), V(0, 0.28, 0), 0.015, MC("#eee", { gloss: 0.6 })), hd = new T.Mesh(new T.SphereGeometry(0.07, 14, 10), MC("#e6192d", { gloss: 0.9 })); hd.position.y = 0.3; pin.add(st, hd); pin.position.copy(d).multiplyScalar(1.4); pin.quaternion.setFromUnitVectors(V(0, 1, 0), d); ball.add(pin); });
-    R.fit(3.7);
-    return { sc: R.sc, up: lt => { ball.rotation.y = lt * 0.5; R.root.rotation.y = sin(lt * 0.4) * 0.35; R.root.rotation.x = 0.1; } };
+    const gridMat = new T.MeshBasicMaterial({ color: 0x9bd8ff, transparent: true, opacity: .42 });
+    [-.9,-.45,0,.45,.9].forEach(v => {
+      const rr = 1.425 * Math.sqrt(1-v*v);
+      const ring = new T.Mesh(new T.TorusGeometry(rr, .009, 6, 64), gridMat);
+      ring.rotation.x = Math.PI/2; ring.position.y = v*1.425; group.add(ring);
+    });
+    const meridian = new T.Mesh(new T.TorusGeometry(1.43, .009, 6, 72), gridMat);
+    meridian.rotation.y = Math.PI/2; group.add(meridian);
+    const gold = new T.MeshStandardMaterial({ color: 0xd7b14f, metalness: .7, roughness: .25 });
+    const axis = new T.Mesh(new T.CylinderGeometry(.025,.025,3.35,12), gold); axis.rotation.z=.22; group.add(axis);
+    const base = new T.Mesh(new T.CylinderGeometry(.72,.82,.16,40), gold); base.position.y=-1.72; R.model.add(base);
+    const collar = new T.Mesh(new T.CylinderGeometry(.18,.28,.35,32), gold); collar.position.y=-1.53; R.model.add(collar);
+    R.fit(3.8);
+    return { sc:R.sc, up:lt=>{group.rotation.y=lt*.48; group.rotation.x=.12+Math.sin(lt*.35)*.08;} };
   };
 
   function tvScreen(x, w, h, lt) {
@@ -444,14 +454,21 @@
     x.save(); x.beginPath(); x.rect(140, h - 60, w - 140, 60); x.clip(); x.font = "700 26px Arial, sans-serif"; const unit = "КУРС  •  ПОГОДА  •  СПОРТ  •  ЭКОНОМИКА  •  МИР  •  ", uw = x.measureText(unit).width, off = (lt * 120) % uw; for (let xx = 150 - off; xx < w; xx += uw) x.fillText(unit, xx, h - 30); x.restore();
   }
   M3.n3_tv = pal => {
-    const R = rig(pal), T = R.T, scr = canvasTex(1024, 576, (x, w, h) => tvScreen(x, w, h, 0));
-    const bezel = new T.Mesh(new T.ExtrudeGeometry(roundedRect(4.3, 2.55, 0.14), { depth: 0.2, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 4, curveSegments: 10 }), MC("#10151c", { gloss: 0.7, dark: "#000" })); bezel.geometry.center(); R.model.add(bezel);
-    const sm = new T.Mesh(new T.PlaneGeometry(3.98, 2.24), new T.MeshBasicMaterial({ map: scr.tex })); sm.position.z = 0.15; R.model.add(sm);
-    const neck = new T.Mesh(new T.BoxGeometry(0.3, 0.55, 0.12), MC("#2b3340", { gloss: 0.8 })); neck.position.y = -1.55; R.model.add(neck);
-    const base = new T.Mesh(new T.CylinderGeometry(1.0, 1.1, 0.1, 48), MC("#2b3340", { gloss: 0.9 })); base.scale.z = 0.45; base.position.y = -1.85; R.model.add(base);
-    const led = new T.Mesh(new T.SphereGeometry(0.035, 10, 8), new T.MeshBasicMaterial({ color: 0xff2a3d })); led.position.set(1.9, -1.2, 0.14); R.model.add(led);
-    R.fit(3.9);
-    return { sc: R.sc, up: lt => { tvScreen(scr.x, 1024, 576, lt); scr.tex.needsUpdate = true; R.root.rotation.y = sin(lt * 0.6) * 0.5; R.root.rotation.x = 0.05; } };
+    const R = rig(pal), T = R.T;
+    const frameMat = new T.MeshStandardMaterial({ color:0x171d29, metalness:.72, roughness:.28 });
+    const screenMat = new T.MeshBasicMaterial({ color:0x102c55 });
+    const trimMat = new T.MeshStandardMaterial({ color:0x65758b, metalness:.85, roughness:.2 });
+    const bezel = new T.Mesh(new T.ExtrudeGeometry(roundedRect(4.2,2.55,.18),{depth:.28,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:4}),frameMat);
+    bezel.geometry.center(); R.model.add(bezel);
+    const screen = new T.Mesh(new T.PlaneGeometry(3.82,2.16),screenMat); screen.position.z=.17; R.model.add(screen);
+    const top = new T.Mesh(new T.BoxGeometry(3.82,.055,.025),trimMat); top.position.set(0,1.08,.19); R.model.add(top);
+    const ticker = new T.Mesh(new T.BoxGeometry(3.82,.34,.035),new T.MeshBasicMaterial({color:0xb8172b})); ticker.position.set(0,-.79,.2); R.model.add(ticker);
+    const headline = new T.Mesh(new T.BoxGeometry(2.7,.075,.025),new T.MeshBasicMaterial({color:0xffffff})); headline.position.set(-.35,-.72,.23); R.model.add(headline);
+    const live = new T.Mesh(new T.SphereGeometry(.075,16,12),new T.MeshBasicMaterial({color:0xff253f})); live.position.set(1.72,.93,.23); R.model.add(live);
+    const neck = new T.Mesh(new T.BoxGeometry(.34,.55,.24),frameMat); neck.position.y=-1.55; R.model.add(neck);
+    const foot = new T.Mesh(new T.CylinderGeometry(.95,1.08,.14,40),frameMat); foot.scale.z=.52; foot.position.y=-1.88; R.model.add(foot);
+    R.fit(4.0);
+    return { sc:R.sc, up:lt=>{R.root.rotation.y=Math.sin(lt*.55)*.32; R.root.rotation.x=.04; live.material.color.setHex(Math.sin(lt*5)>0?0xff253f:0x52101b); ticker.scale.x=.96+.04*Math.sin(lt*2); } };
   };
 
   M3.n3_tower = pal => {
