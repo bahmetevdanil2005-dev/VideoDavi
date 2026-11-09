@@ -1110,8 +1110,8 @@ $('#sc').oninput=e=>{
 };
 $('#tts').onclick=()=>createVoice();
 $('#dl').onclick=startExport;$('#cx').onclick=()=>{cancelExp=true};
-$$('.seg[data-k]').forEach(g=>g.onclick=e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-  const k=g.dataset.k;ui[k]=k==='dur'?+b.dataset.v:b.dataset.v;if(k==='format')dims();if(S&&k!=='format'){const pal=PAL[ui.style];S.pal=pal}});
+$('.seg[data-k]').forEach(g=>g.onclick=e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const k=g.dataset.k;ui[k]=k==='dur'?+b.dataset.v:b.dataset.v;if(k==='format')dims();if(S&&k!=='format'){S.pal=(ui.palette&&ui.palette.length===3?ui.palette:PAL[ui.style]).slice();frame()}});
 $('nav button').forEach(b=>b.onclick=()=>{$('nav button').forEach(x=>x.classList.toggle('on',x===b));$('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));if(b.dataset.t==='t-saved')renderSaved();if(window.lucide)lucide.createIcons()});
 /* библиотека */
 const grid=$('#grid'),io=new IntersectionObserver(es=>es.forEach(e=>e.target._v=e.isIntersecting));
