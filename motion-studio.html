@@ -931,22 +931,24 @@ const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
 function play(){
   if(!S)return;if(t>=S.dur-.02)t=0;
   playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';
-  try{ensureAudio().then(()=>{if(AC.state==='suspended')return AC.resume()}).then(()=>music(t)).then(()=>{
-    if(playing){
+  try{
+    const ready=ensureAudio();
+    ready.then(()=>AC.state==='suspended'?AC.resume():undefined).then(()=>{
+      if(!playing)return;
+      if(AC.state!=='running')throw new Error('Браузер не разрешил воспроизведение аудио. Нажмите «Играть» ещё раз.');
       lastSoundScene=sceneIndexAt(t);
       scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));
       if(voiceBuffer)startVoiceAt(t);
-      say(voiceBuffer?'Воспроизведение видео и озвучки · голос '+Math.round(voiceBuffer.duration)+' сек.':'Воспроизведение видео',0);
-    }
-  }).catch(e=>say('Не удалось включить звук: '+e.message,1))}
-  catch(e){say('Не удалось включить звук: '+e.message,1)}
+      say('Звук включён · AudioContext '+AC.state+(voiceBuffer?' · голос '+Math.round(voiceBuffer.duration)+' сек.':''),0);
+    }).catch(e=>{say('Звук не запустился: '+e.message,1);console.error('Motion Studio audio:',e,AC&&AC.state)});
+  }catch(e){say('Не удалось включить звук: '+e.message,1)}
 }
 function pause(){
   playing=false;lastSoundScene=-1;stopAudio();
   $('#pp').textContent='Играть';
 }
 function loop(now){
-  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running')scheduleSceneSfx(si,0);else ensureAudio().then(()=>{if(playing)scheduleSceneSfx(si,0)}).catch(e=>say('Ошибка звука сцены: '+e.message,1))}catch(e){say('Ошибка звука сцены: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
+  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{const fire=()=>{if(!playing||!AC||AC.state!=='running')return;transitionSound(si);scheduleSceneSfx(si,0)};if(AC&&AC.state==='running')fire();else ensureAudio().then(fire).catch(e=>say('Ошибка звука сцены: '+e.message,1))}catch(e){say('Ошибка звука сцены: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
   if(!fastExp){frame();if(S){$('#sc').value=t/S.dur*1000;$('#tm').textContent=fmt(t)+' / '+fmt(S.dur)}}
   if($('#t-lib').classList.contains('on'))libFrame(now/1000);
   requestAnimationFrame(loop);
