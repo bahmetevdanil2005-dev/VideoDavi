@@ -33,6 +33,25 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
+
+    if (path === "/library" && request.method === "GET") {
+      try { return json((await readLibraryFromGitHub(env)).manifest, 200, cors); }
+      catch (error) { console.error("LIBRARY READ ERROR:", error); return json({ ok:false, error:error?.message || "Library read failed" }, 502, cors); }
+    }
+    if (path === "/library" && request.method === "POST") {
+      if (!env.LIBRARY_ADMIN_KEY) return json({ ok:false, error:"LIBRARY_ADMIN_KEY is not configured" }, 500, cors);
+      if (!env.GITHUB_TOKEN) return json({ ok:false, error:"GITHUB_TOKEN is not configured" }, 500, cors);
+      const suppliedKey = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+      if (!constantTimeEqual(suppliedKey, env.LIBRARY_ADMIN_KEY)) return json({ ok:false, error:"Нет доступа к управлению библиотекой" }, 401, cors);
+      let body;
+      try { body = await request.json(); } catch { return json({ ok:false, error:"Invalid JSON request" }, 400, cors); }
+      try {
+        const manifest = normalizeLibraryManifest(body?.manifest);
+        const saved = await writeLibraryToGitHub(manifest, env);
+        return json({ ok:true, manifest, commit:saved.commit }, 200, cors);
+      } catch (error) { console.error("LIBRARY WRITE ERROR:", error); return json({ ok:false, error:error?.message || "Library write failed" }, 502, cors); }
+    }
+
     if (request.method === "GET" && path === "/health") {
       return json({ ok: true, service: "MOTION STUDIO DIRECTOR", version: "5.0", mode: "json+tts", models: modelList(env), ttsModel: TTS_MODEL, timestamp: new Date().toISOString() }, 200, cors);
     }
@@ -79,6 +98,62 @@ export default {
     }
   }
 };
+
+
+// ============================================================
+// PROJECT LIBRARY STORAGE (GitHub Contents API)
+// Required Worker secrets: GITHUB_TOKEN, LIBRARY_ADMIN_KEY
+// ============================================================
+const LIBRARY_REPO = "bahmetevdanil2005-dev/VideoDavi";
+const LIBRARY_PATH = "library-data.json";
+const LIBRARY_BRANCH = "main";
+const EMPTY_LIBRARY = { version:1, deletedIds:[], customItems:[] };
+function constantTimeEqual(a,b) {
+  a=String(a||""); b=String(b||""); if(a.length!==b.length)return false;
+  let diff=0; for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i); return diff===0;
+}
+function normalizeLibraryManifest(source) {
+  if(!source||typeof source!=="object")throw new Error("Некорректные данные библиотеки");
+  const deletedIds=[...new Set((Array.isArray(source.deletedIds)?source.deletedIds:[]).filter(x=>typeof x==="string"&&x.length>0&&x.length<=120))].slice(0,5000);
+  const customItems=(Array.isArray(source.customItems)?source.customItems:[]).slice(0,40).map(item=>{
+    if(!item||typeof item!=="object"||typeof item.id!=="string"||typeof item.rawCode!=="string"||item.rawCode.length>180000)throw new Error("Элемент библиотеки повреждён или превышает 180 КБ");
+    return {id:safeString(item.id,120),name:safeString(item.name||"Мой HTML-элемент",80),cat:"HTML / CSS / JS",tags:safeString(item.tags||"html css javascript пользовательский код",300),domain:"Общие элементы",rawCode:item.rawCode};
+  });
+  const result={version:1,deletedIds,customItems};
+  if(JSON.stringify(result).length>700000)throw new Error("Общий размер библиотеки превышает лимит");
+  return result;
+}
+async function githubLibraryRequest(method,body,env) {
+  const url="https://api.github.com/repos/"+LIBRARY_REPO+"/contents/"+LIBRARY_PATH;
+  const response=await fetch(url+(method==="GET"?"?ref="+LIBRARY_BRANCH:""),{
+    method,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+env.GITHUB_TOKEN,"X-GitHub-Api-Version":"2022-11-28","User-Agent":"Motion-Studio-Library"},
+    ...(body?{body:JSON.stringify(body)}:{})
+  });
+  const data=await response.json().catch(()=>({})); return {response,data};
+}
+async function readLibraryFromGitHub(env) {
+  if(!env.GITHUB_TOKEN)throw new Error("GITHUB_TOKEN is not configured");
+  const {response,data}=await githubLibraryRequest("GET",null,env);
+  if(response.status===404)return {manifest:{...EMPTY_LIBRARY},sha:null};
+  if(!response.ok)throw new Error("GitHub read error "+response.status+": "+safeString(data.message,300));
+  if(!data.content||!data.sha)throw new Error("GitHub вернул пустой файл библиотеки");
+  const binary=atob(String(data.content).replace(/\s/g,""));
+  const bytes=Uint8Array.from(binary,ch=>ch.charCodeAt(0));
+  return {manifest:normalizeLibraryManifest(JSON.parse(new TextDecoder().decode(bytes))),sha:data.sha};
+}
+function encodeBase64Utf8(value) {
+  const bytes=new TextEncoder().encode(value);let binary="";
+  for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  return btoa(binary);
+}
+async function writeLibraryToGitHub(manifest,env) {
+  const current=await readLibraryFromGitHub(env);
+  const payload={message:"Update Motion Studio library",content:encodeBase64Utf8(JSON.stringify(manifest,null,2)+"\n"),branch:LIBRARY_BRANCH};
+  if(current.sha)payload.sha=current.sha;
+  const {response,data}=await githubLibraryRequest("PUT",payload,env);
+  if(!response.ok)throw new Error("GitHub write error "+response.status+": "+safeString(data.message,400));
+  return {commit:data.commit?.sha||null};
+}
 
 // ============================================================
 // RESPONSE + HELPERS
