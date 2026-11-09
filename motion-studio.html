@@ -792,7 +792,7 @@ function transitionSound(index,at){
   const dur=kind==='soft'?.42:kind==='whoosh'?.28:.12,count=Math.ceil(AC.sampleRate*dur),buf=AC.createBuffer(1,count,AC.sampleRate),data=buf.getChannelData(0);
   for(let i=0;i<count;i++){const env=kind==='soft'?Math.sin(Math.PI*i/count):kind==='whoosh'?Math.sin(Math.PI*i/count)**1.5:Math.exp(-i/(count*.12));data[i]=(Math.random()*2-1)*env}
   const src=AC.createBufferSource(),filter=AC.createBiquadFilter(),gain=AC.createGain();src.buffer=buf;filter.type=kind==='tap'?'lowpass':'bandpass';filter.frequency.setValueAtTime(kind==='tap'?1200:5200,t0);filter.frequency.exponentialRampToValueAtTime(kind==='tap'?180:650,t0+dur);filter.Q.value=kind==='tap'?.7:.8;gain.gain.setValueAtTime(kind==='soft'?.16:.32,t0);gain.gain.exponentialRampToValueAtTime(.001,t0+dur);src.connect(filter);filter.connect(gain);gain.connect(g);src.start(t0);src.stop(t0+dur+.02);effectNodes.push(src);
-  if(kind!=='soft'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(kind==='tap'?180:110,t0);o.frequency.exponentialRampToValueAtTime(45,t0+.16);og.gain.setValueAtTime(kind==='tap'?.12:.2,t0);og.gain.exponentialRampToValueAtTime(.001,t0+.18);o.connect(og);og.connect(g);o.start(t0);o.stop(t0+.2);nodes.push(o)}
+  if(kind!=='soft'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(kind==='tap'?180:110,t0);o.frequency.exponentialRampToValueAtTime(45,t0+.16);og.gain.setValueAtTime(kind==='tap'?.12:.2,t0);og.gain.exponentialRampToValueAtTime(.001,t0+.18);o.connect(og);og.connect(g);o.start(t0);o.stop(t0+.2);effectNodes.push(o)}
 }
 function music(from){
   stopEffects();if(!S)return;
