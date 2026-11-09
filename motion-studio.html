@@ -728,10 +728,12 @@ async function ai(user,sys,mx){
 async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return norm(await ai(u))}catch(e){err=e.message;u=user+'\n\nПрошлый ответ не подошёл: '+err+'. Верни корректный JSON.'}}throw new Error(err)}
 
 /* ================= AUDIO ================= */
-let AC,DEST,nodes=[];
+let AC,DEST,effectNodes=[];
 let voiceBuffer=null,voiceNode=null;
 function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination()}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
-function stopAudio(){nodes.forEach(o=>{try{o.stop()}catch(e){}});nodes=[];voiceNode=null}
+function stopEffects(){effectNodes.forEach(o=>{try{o.stop()}catch(e){}});effectNodes=[]}
+function stopVoice(){if(voiceNode){try{voiceNode.stop()}catch(e){}voiceNode=null}}
+function stopAudio(){stopEffects();stopVoice()}
 function startVoiceAt(sec){
   if(!voiceBuffer||!AC||!playing)return;
   if(voiceNode){try{voiceNode.stop()}catch(e){}voiceNode=null}
@@ -741,7 +743,7 @@ function startVoiceAt(sec){
   src.buffer=voiceBuffer;gain.gain.value=1.5;
   src.connect(gain);gain.connect(AC.destination);gain.connect(DEST);
   src.onended=()=>{if(voiceNode===src)voiceNode=null};
-  voiceNode=src;nodes.push(src);src.start(0,offset);
+  voiceNode=src;src.start(0,offset);
 }
 function narrationText(){
   if(!S)return '';
@@ -789,16 +791,17 @@ function transitionSound(index,at){
   const t0=at==null?AC.currentTime+.015:at,g=AC.createGain();g.gain.value=.8;g.connect(AC.destination);g.connect(DEST);
   const dur=kind==='soft'?.42:kind==='whoosh'?.28:.12,count=Math.ceil(AC.sampleRate*dur),buf=AC.createBuffer(1,count,AC.sampleRate),data=buf.getChannelData(0);
   for(let i=0;i<count;i++){const env=kind==='soft'?Math.sin(Math.PI*i/count):kind==='whoosh'?Math.sin(Math.PI*i/count)**1.5:Math.exp(-i/(count*.12));data[i]=(Math.random()*2-1)*env}
-  const src=AC.createBufferSource(),filter=AC.createBiquadFilter(),gain=AC.createGain();src.buffer=buf;filter.type=kind==='tap'?'lowpass':'bandpass';filter.frequency.setValueAtTime(kind==='tap'?1200:5200,t0);filter.frequency.exponentialRampToValueAtTime(kind==='tap'?180:650,t0+dur);filter.Q.value=kind==='tap'?.7:.8;gain.gain.setValueAtTime(kind==='soft'?.16:.32,t0);gain.gain.exponentialRampToValueAtTime(.001,t0+dur);src.connect(filter);filter.connect(gain);gain.connect(g);src.start(t0);src.stop(t0+dur+.02);nodes.push(src);
+  const src=AC.createBufferSource(),filter=AC.createBiquadFilter(),gain=AC.createGain();src.buffer=buf;filter.type=kind==='tap'?'lowpass':'bandpass';filter.frequency.setValueAtTime(kind==='tap'?1200:5200,t0);filter.frequency.exponentialRampToValueAtTime(kind==='tap'?180:650,t0+dur);filter.Q.value=kind==='tap'?.7:.8;gain.gain.setValueAtTime(kind==='soft'?.16:.32,t0);gain.gain.exponentialRampToValueAtTime(.001,t0+dur);src.connect(filter);filter.connect(gain);gain.connect(g);src.start(t0);src.stop(t0+dur+.02);effectNodes.push(src);
   if(kind!=='soft'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(kind==='tap'?180:110,t0);o.frequency.exponentialRampToValueAtTime(45,t0+.16);og.gain.setValueAtTime(kind==='tap'?.12:.2,t0);og.gain.exponentialRampToValueAtTime(.001,t0+.18);o.connect(og);og.connect(g);o.start(t0);o.stop(t0+.2);nodes.push(o)}
 }
 function music(from){
-  stopAudio();if(!S)return;
+  stopEffects();if(!S)return;
   const schedule=()=>{const t0=AC.currentTime+.08;S.scenes.forEach((sc,i)=>{if(i===0||sc.start<from-.01)return;transitionSound(i,t0+sc.start-from)})};
   if(AC&&AC.startRendering){schedule();return Promise.resolve()}
   return ensureAudio().then(schedule).catch(e=>{say('Не удалось включить звук переходов: '+e.message,1);throw e});
 }
-function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);nodes.push(o)})}
+function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);effectNodes.push(o)})}
+function scheduleSceneSfx(index,fromLocal){if(!AC||!S||index<0)return;const sc=S.scenes[index];if(!sc)return;const base=AC.currentTime+.025;(sc.sfx||[]).forEach(item=>{const at=Math.max(0,+item.at||0);if(at<fromLocal-.015)return;sfx(item.id,base+Math.max(0,at-fromLocal))})}
 /* ================= ENGINE ================= */
 const cv=$('#cv'),cx=cv.getContext('2d');
 let t=0,playing=false,last=0,exporting=false,rec=null,lastSoundScene=-1;
@@ -825,6 +828,7 @@ function play(){
   try{ensureAudio().then(()=>{if(AC.state==='suspended')return AC.resume()}).then(()=>{
     if(playing){
       lastSoundScene=sceneIndexAt(t);
+      scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));
       if(voiceBuffer)startVoiceAt(t);
       say(voiceBuffer?'Воспроизведение видео и озвучки · голос '+Math.round(voiceBuffer.duration)+' сек.':'Воспроизведение видео',0);
     }
@@ -836,7 +840,7 @@ function pause(){
   $('#pp').textContent='Играть';
 }
 function loop(now){
-  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running')transitionSound(si);else ensureAudio().then(()=>transitionSound(si)).catch(e=>say('Ошибка звука перехода: '+e.message,1))}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
+  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running'){transitionSound(si);scheduleSceneSfx(si,0)}else ensureAudio().then(()=>{transitionSound(si);scheduleSceneSfx(si,0)}).catch(e=>say('Ошибка звука перехода: '+e.message,1))}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
   if(!fastExp){frame();if(S){$('#sc').value=t/S.dur*1000;$('#tm').textContent=fmt(t)+' / '+fmt(S.dur)}}
   if($('#t-lib').classList.contains('on'))libFrame(now/1000);
   requestAnimationFrame(loop);
@@ -864,12 +868,13 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function prog(f,txt){$('#pb').style.width=Math.round(clamp(f)*100)+'%';$('#pt').textContent=txt}
 async function renderAudio(){
   const sr=44100,off=new OfflineAudioContext(2,Math.ceil((S.dur+.2)*sr),sr),sA=AC,sD=DEST;
-  AC=off;DEST=off.destination;nodes=[];
+  AC=off;DEST=off.destination;effectNodes=[];
   try{
     music(0);
+    S.scenes.forEach(sc=>(sc.sfx||[]).forEach(item=>sfx(item.id,off.currentTime+.08+sc.start+(+item.at||0))));
     if(voiceBuffer){const v=off.createBufferSource();v.buffer=voiceBuffer;v.connect(off.destination);v.start(0)}
     return await off.startRendering();
-  }finally{AC=sA;DEST=sD;nodes=[]}
+  }finally{AC=sA;DEST=sD;effectNodes=[]}
 }
 async function startExport(){
   if(!S)return say('Сначала сгенерируйте видео.',1);
@@ -992,7 +997,8 @@ $('#sc').oninput=e=>{
   if(!S)return;t=e.target.value/1000*S.dur;
   if(playing){
     if(voiceNode){try{voiceNode.stop()}catch(x){}voiceNode=null}
-    ensureAudio().then(()=>music(t)).then(()=>{if(playing)startVoiceAt(t)}).catch(err=>say('Не удалось синхронизировать голос: '+err.message,1));
+    lastSoundScene=sceneIndexAt(t);
+    ensureAudio().then(()=>music(t)).then(()=>{if(playing){scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));startVoiceAt(t)}}).catch(err=>say('Не удалось синхронизировать голос: '+err.message,1));
   }
 };
 $('#tts').onclick=()=>createVoice();
