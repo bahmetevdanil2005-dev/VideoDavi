@@ -1248,7 +1248,11 @@ $('#q').oninput=e=>{qs=e.target.value.toLowerCase().trim();filt()};
 $('#key').value=cfg.key;$('#model').value=cfg.model;$('#loc').checked=cfg.local;
 $('#wk').value=cfg.worker||'';$('#wk').onchange=e=>{cfg.worker=e.target.value.trim();saveCfg()};
 $('#libAdminKey').value='';try{$('#libAdminKey').value=sessionStorage.getItem('ms_library_admin_key')||''}catch(e){}
-$('#libAdminKey').addEventListener('change',e=>{try{if(e.target.value.trim())sessionStorage.setItem('ms_library_admin_key',e.target.value.trim());else sessionStorage.removeItem('ms_library_admin_key')}catch(err){}});
+$('#libAdminKey').addEventListener('change',e=>{
+ const key=e.target.value.trim();
+ try{if(key)sessionStorage.setItem('ms_library_admin_key',key);else sessionStorage.removeItem('ms_library_admin_key')}catch(err){}
+ if(key&&libraryLoaded)queueLibraryUpdate(m=>m).then(()=>showLibraryToast('Старые изменения перенесены в проект')).catch(err=>say('Не удалось перенести старые изменения: '+err.message,1));
+});
 
 $('#key').onchange=e=>{cfg.key=e.target.value.trim();saveCfg()};
 $('#model').onchange=e=>{cfg.model=e.target.value;saveCfg()};
