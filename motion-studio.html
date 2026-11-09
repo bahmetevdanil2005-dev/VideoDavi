@@ -1134,7 +1134,7 @@ function readLibStore(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]
 function saveLibStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}}
 let libraryManifest={version:1,deletedIds:[],customItems:[]},libraryLoaded=false,libraryWriteQueue=Promise.resolve();
 function libraryBase(){return (cfg.worker||'').replace(/\/+$/,'')}
-function libraryAdminKey(){try{return sessionStorage.getItem('ms_library_admin_key')||$('#libAdminKey').value.trim()}catch(e){return $('#libAdminKey').value.trim()}}
+function libraryAdminKey(){const field=$('#libAdminKey');const typed=field?field.value.trim():'';if(typed)return typed;try{return sessionStorage.getItem('ms_library_admin_key')||''}catch(e){return ''}}
 function normalizeClientManifest(value){const m=value&&typeof value==='object'?value:{};return {version:1,deletedIds:[...new Set(Array.isArray(m.deletedIds)?m.deletedIds.filter(x=>typeof x==='string'):[])],customItems:Array.isArray(m.customItems)?m.customItems.filter(x=>x&&typeof x.id==='string'&&typeof x.rawCode==='string').slice(0,40):[]}}
 async function postLibraryManifest(next){
  if(!libraryLoaded)throw Error('Общая библиотека ещё загружается. Попробуйте через несколько секунд.');
@@ -1203,7 +1203,7 @@ function addLibraryCard(it){
   try{
    await queueLibraryUpdate(m=>it.custom?({...m,customItems:m.customItems.filter(x=>x.id!==it.id)}):({...m,deletedIds:[...m.deletedIds,it.id]}));
    const ix=LIB.indexOf(it);if(ix>=0)LIB.splice(ix,1);b.remove();filt();showLibraryToast('Изменение сохранено в GitHub');
-  }catch(error){say('Не удалось изменить общую библиотеку: '+error.message,1);del.disabled=false}
+  }catch(error){const message='Не удалось удалить элемент: '+(error?.message||'неизвестная ошибка');showLibraryToast(message);$('#libcount').textContent=message;console.error('MOTION STUDIO LIBRARY DELETE:',error);say(message,1);del.disabled=false}
  });
  actions.append(del);head.append(title,actions);b.append(preview,head);
  it.cv=it.rawCode!==undefined?null:preview;it.sc=it.rawCode!==undefined?null:it.mk();it.el=b;
@@ -1248,6 +1248,7 @@ $('#q').oninput=e=>{qs=e.target.value.toLowerCase().trim();filt()};
 $('#key').value=cfg.key;$('#model').value=cfg.model;$('#loc').checked=cfg.local;
 $('#wk').value=cfg.worker||'';$('#wk').onchange=e=>{cfg.worker=e.target.value.trim();saveCfg()};
 $('#libAdminKey').value='';try{$('#libAdminKey').value=sessionStorage.getItem('ms_library_admin_key')||''}catch(e){}
+$('#libAdminKey').addEventListener('input',e=>{try{const key=e.target.value.trim();if(key)sessionStorage.setItem('ms_library_admin_key',key);else sessionStorage.removeItem('ms_library_admin_key')}catch(err){}});
 $('#libAdminKey').addEventListener('change',e=>{
  const key=e.target.value.trim();
  try{if(key)sessionStorage.setItem('ms_library_admin_key',key);else sessionStorage.removeItem('ms_library_admin_key')}catch(err){}
