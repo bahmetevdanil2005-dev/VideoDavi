@@ -194,6 +194,7 @@ nav button:active{transform:scale(.94)}
 <section id="t-set">
   <p class="subhead">05 / параметры</p>
   <div class="row"><p class="lbl">Адрес Worker с Gemini</p><input id="wk" placeholder="https://название.аккаунт.workers.dev" autocomplete="off"></div>
+  <div class="row"><p class="lbl">Ключ управления библиотекой</p><input id="libAdminKey" type="password" placeholder="Секрет LIBRARY_ADMIN_KEY" autocomplete="new-password"><p class="note">Ключ действует только в этой сессии и нужен для добавления и удаления элементов.</p></div>
   <div class="row"><p class="lbl">Запасной API-ключ Anthropic</p><input id="key" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
   <div class="row"><p class="lbl">Модель</p><select id="model"><option value="claude-opus-5-5">Claude Opus 5.5</option><option value="claude-sonnet-5-5">Claude Sonnet 5.5</option><option value="claude-haiku-5-5">Claude Haiku 5.5</option></select></div>
   <div class="row chk"><input type="checkbox" id="loc"><label for="loc">Локальный режим без ИИ</label></div>
@@ -1131,30 +1132,63 @@ const grid=$('#grid'),io=new IntersectionObserver(es=>es.forEach(e=>e.target._v=
 const LIB_CUSTOM_KEY='ms_custom_library_v1',LIB_DELETED_KEY='ms_deleted_library_v1';
 function readLibStore(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
 function saveLibStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}}
-
+let libraryManifest={version:1,deletedIds:[],customItems:[]},libraryLoaded=false,libraryWriteQueue=Promise.resolve();
+function libraryBase(){return (cfg.worker||'').replace(/\/+$/,'')}
+function libraryAdminKey(){try{return sessionStorage.getItem('ms_library_admin_key')||$('#libAdminKey').value.trim()}catch(e){return $('#libAdminKey').value.trim()}}
+function normalizeClientManifest(value){const m=value&&typeof value==='object'?value:{};return {version:1,deletedIds:[...new Set(Array.isArray(m.deletedIds)?m.deletedIds.filter(x=>typeof x==='string'):[])],customItems:Array.isArray(m.customItems)?m.customItems.filter(x=>x&&typeof x.id==='string'&&typeof x.rawCode==='string').slice(0,40):[]}}
+async function postLibraryManifest(next){
+ if(!libraryLoaded)throw Error('Общая библиотека ещё загружается. Попробуйте через несколько секунд.');
+ const key=libraryAdminKey();if(!key)throw Error('Откройте «Настройки» и введите ключ управления библиотекой.');
+ const base=libraryBase();if(!base)throw Error('Не указан адрес Cloudflare Worker.');
+ const response=await fetch(base+'/library',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({manifest:next})});
+ let data={};try{data=await response.json()}catch(e){}
+ if(!response.ok||!data.ok)throw Error(data.error||('Ошибка сохранения: '+response.status));
+ libraryManifest=normalizeClientManifest(data.manifest||next);return true;
+}
+function queueLibraryUpdate(mutator){
+ const run=async()=>{const next=normalizeClientManifest(mutator(libraryManifest));await postLibraryManifest(next);return next};
+ const task=libraryWriteQueue.then(run,run);libraryWriteQueue=task.catch(()=>{});return task;
+}
+function applyLibraryManifest(){
+ const deleted=new Set(libraryManifest.deletedIds);
+ for(let i=LIB.length-1;i>=0;i--)if(!LIB[i].custom&&deleted.has(LIB[i].id))LIB.splice(i,1);
+ for(let i=LIB.length-1;i>=0;i--)if(LIB[i].custom)LIB.splice(i,1);
+ libraryManifest.customItems.forEach(x=>LIB.push({...x,custom:true}));
+ grid.replaceChildren();LIB.forEach(it=>addLibraryCard(it));filt();
+}
+async function loadLibraryManifest(){
+ try{
+  const base=libraryBase();if(!base)throw Error('Не указан адрес Worker');
+  const response=await fetch(base+'/library',{cache:'no-store'});const data=await response.json();
+  if(!response.ok||data.ok===false)throw Error(data.error||('HTTP '+response.status));
+  libraryManifest=normalizeClientManifest(data);
+  const oldDeleted=readLibStore(LIB_DELETED_KEY),oldCustom=readLibStore(LIB_CUSTOM_KEY);
+  libraryManifest.deletedIds=[...new Set([...libraryManifest.deletedIds,...oldDeleted])];
+  const known=new Set(libraryManifest.customItems.map(x=>x.id));
+  oldCustom.forEach(x=>{if(x&&typeof x.rawCode==='string'&&!known.has(x.id)){libraryManifest.customItems.push(x);known.add(x.id)}});
+  libraryLoaded=true;applyLibraryManifest();showLibraryToast('Библиотека синхронизирована с проектом');
+ }catch(error){libraryLoaded=false;$('#libcount').textContent='Не удалось загрузить общую библиотеку: '+(error.message||'ошибка Worker');console.error('MOTION STUDIO LIBRARY LOAD:',error)}
+}
 function showLibraryToast(message){
  let toast=$('#libToast');if(!toast){toast=document.createElement('div');toast.id='libToast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.append(toast)}
- toast.textContent=message;toast.classList.add('on');clearTimeout(window.__libToastTimer);window.__libToastTimer=setTimeout(()=>toast.classList.remove('on'),2200);
+ toast.textContent=message;toast.classList.add('on');clearTimeout(window.__libToastTimer);window.__libToastTimer=setTimeout(()=>toast.classList.remove('on'),2600);
 }
 function confirmLibraryDelete(name){
  return new Promise(resolve=>{
   const back=document.createElement('div');back.className='lib-modal-backdrop';
   const modal=document.createElement('div');modal.className='lib-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
   const title=document.createElement('h3');title.textContent='Удалить элемент?';
-  const msg=document.createElement('p');msg.textContent='Вы уверены, что хотите удалить «'+name+'» из библиотеки? Это действие нельзя отменить.';
+  const msg=document.createElement('p');msg.textContent='Вы уверены, что хотите удалить «'+name+'» из общей библиотеки проекта?';
   const row=document.createElement('div');row.className='lib-modal-actions';
   const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Отмена';
   const yes=document.createElement('button');yes.type='button';yes.className='danger';yes.textContent='Удалить';
-  const close=value=>{back.remove();document.removeEventListener('keydown',onKey);resolve(value)};
+  const close=v=>{document.removeEventListener('keydown',onKey);back.remove();resolve(v)};
   const onKey=e=>{if(e.key==='Escape')close(false)};
-  cancel.addEventListener('click',()=>close(false));yes.addEventListener('click',()=>close(true));
-  back.addEventListener('click',e=>{if(e.target===back)close(false)});
+  cancel.addEventListener('click',()=>close(false));yes.addEventListener('click',()=>close(true));back.addEventListener('click',e=>{if(e.target===back)close(false)});
   document.addEventListener('keydown',onKey);row.append(cancel,yes);modal.append(title,msg,row);back.append(modal);document.body.append(back);yes.focus();
  });
 }
-
 function iconSvg(){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
-
 function addLibraryCard(it){
  const b=document.createElement('div');b.className='card lib-card';b.dataset.s=(it.cat+' '+it.name+' '+(it.tags||'')).toLowerCase();
  let preview;
@@ -1164,37 +1198,38 @@ function addLibraryCard(it){
  const title=document.createElement('b');title.className='lib-card-title';title.textContent=it.name;
  const actions=document.createElement('div');actions.className='lib-card-actions';
  const del=document.createElement('button');del.type='button';del.className='lib-icon-btn delete';del.title='Удалить элемент';del.setAttribute('aria-label','Удалить: '+it.name);del.innerHTML=iconSvg();
- del.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(!await confirmLibraryDelete(it.name))return;
-  if(it.custom){const next=readLibStore(LIB_CUSTOM_KEY).filter(x=>x.id!==it.id);if(!saveLibStore(LIB_CUSTOM_KEY,next)){say('Не удалось сохранить удаление',1);return}}
-  else{const ids=readLibStore(LIB_DELETED_KEY);if(!ids.includes(it.id))ids.push(it.id);if(!saveLibStore(LIB_DELETED_KEY,ids)){say('Не удалось сохранить удаление',1);return}}
-  const ix=LIB.indexOf(it);if(ix>=0)LIB.splice(ix,1);b.remove();filt();showLibraryToast('Элемент удалён')
+ del.addEventListener('click',async e=>{
+  e.preventDefault();e.stopPropagation();if(!await confirmLibraryDelete(it.name))return;del.disabled=true;
+  try{
+   await queueLibraryUpdate(m=>it.custom?({...m,customItems:m.customItems.filter(x=>x.id!==it.id)}):({...m,deletedIds:[...m.deletedIds,it.id]}));
+   const ix=LIB.indexOf(it);if(ix>=0)LIB.splice(ix,1);b.remove();filt();showLibraryToast('Изменение сохранено в GitHub');
+  }catch(error){say('Не удалось изменить общую библиотеку: '+error.message,1);del.disabled=false}
  });
  actions.append(del);head.append(title,actions);b.append(preview,head);
  it.cv=it.rawCode!==undefined?null:preview;it.sc=it.rawCode!==undefined?null:it.mk();it.el=b;
  if(it.rawCode===undefined){b.addEventListener('click',e=>{if(e.target.closest('button'))return;if(it.act){it.act();return}if(FX.concat(BG,TR,CH).includes(it.id)){const d=$('#desc');d.value=(d.value+' ['+it.id+']').trim();say('Метка ['+it.id+'] добавлена в описание.')}else if(it.customScene)addScene(it.customScene)})}
  grid.append(b);if(it.cv)io.observe(b);return b
 }
-function restoreCustomLibrary(){
- readLibStore(LIB_CUSTOM_KEY).forEach(x=>{try{
-  if(typeof x.rawCode==='string'){LIB.push({id:x.id,cat:x.cat||'Мой код',name:x.name||'Мой HTML-элемент',tags:x.tags||'html css javascript пользовательский код',domain:x.domain||'Общие элементы',custom:true,rawCode:x.rawCode});return}
-  const sc=x.scene;if(sc&&Array.isArray(sc.layers))LIB.push({id:x.id,cat:x.cat||'Мой код',name:x.name||'Мой элемент',tags:x.tags||'пользовательский код',domain:'Общие элементы',custom:true,customScene:sc,mk:()=>sc,act:()=>addScene(sc)})
- }catch(e){}})
-}
-function addCustomLibraryFromCode(){
- const status=$('#customCodeStatus');try{
+async function addCustomLibraryFromCode(){
+ const status=$('#customCodeStatus'),btn=$('#addCustomCode');btn.disabled=true;
+ try{
   const raw=$('#customCodeInput').value.trim();if(!raw)throw Error('Вставьте HTML-код вместе с CSS и JavaScript.');
   if(raw.length>180000)throw Error('Код слишком большой: максимум 180 КБ.');
   const name=($('#customCodeName').value.trim()||'Мой HTML-элемент').slice(0,80);
   const item={id:'html_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),name,cat:'HTML / CSS / JS',tags:'html css javascript веб-код '+name.toLowerCase(),domain:'Общие элементы',rawCode:raw};
-  const items=readLibStore(LIB_CUSTOM_KEY);items.push(item);if(!saveLibStore(LIB_CUSTOM_KEY,items))throw Error('Не удалось сохранить. Возможно, хранилище браузера заполнено.');
-  LIB.push({...item,custom:true});addLibraryCard(LIB[LIB.length-1]);$('#customCodeInput').value='';$('#customCodeName').value='';status.textContent='«'+name+'» добавлен в библиотеку.';filt();showLibraryToast('Элемент добавлен в библиотеку')
+  await queueLibraryUpdate(m=>({...m,customItems:[...m.customItems,item]}));
+  const added={...item,custom:true};LIB.push(added);addLibraryCard(added);
+  $('#customCodeInput').value='';$('#customCodeName').value='';
+  status.textContent='«'+name+'» сохранён в файле library-data.json проекта.';
+  filt();showLibraryToast('Элемент добавлен в общую библиотеку');
  }catch(e){status.textContent=e.message||'Не удалось добавить код.';say(status.textContent,1)}
+ finally{btn.disabled=false}
 }
 $('#addCustomCode').addEventListener('click',addCustomLibraryFromCode);
-restoreCustomLibrary();
-const deletedLibraryIds=new Set(readLibStore(LIB_DELETED_KEY));
+const deletedLibraryIds=new Set(libraryManifest.deletedIds);
 for(let i=LIB.length-1;i>=0;i--)if(deletedLibraryIds.has(LIB[i].id))LIB.splice(i,1);
 LIB.forEach(it=>addLibraryCard(it));
+loadLibraryManifest();
 function libFrame(ts){LIB.forEach(it=>{if(!it.cv||!it.sc||!it.el||it.el.style.display==='none'||!it.el._v)return;const c=it.cv.getContext('2d'),lt=ts%(it.sc.dur);drawScene(c,320,180,{...it.sc,dur:99},lt,PAL.neon)})}
 let cat='',qs='';
 const catFilter=$('#catfilter');
@@ -1212,6 +1247,9 @@ $('#q').oninput=e=>{qs=e.target.value.toLowerCase().trim();filt()};
 /* настройки */
 $('#key').value=cfg.key;$('#model').value=cfg.model;$('#loc').checked=cfg.local;
 $('#wk').value=cfg.worker||'';$('#wk').onchange=e=>{cfg.worker=e.target.value.trim();saveCfg()};
+$('#libAdminKey').value='';try{$('#libAdminKey').value=sessionStorage.getItem('ms_library_admin_key')||''}catch(e){}
+$('#libAdminKey').addEventListener('change',e=>{try{if(e.target.value.trim())sessionStorage.setItem('ms_library_admin_key',e.target.value.trim());else sessionStorage.removeItem('ms_library_admin_key')}catch(err){}});
+
 $('#key').onchange=e=>{cfg.key=e.target.value.trim();saveCfg()};
 $('#model').onchange=e=>{cfg.model=e.target.value;saveCfg()};
 $('#loc').onchange=e=>{cfg.local=e.target.checked;saveCfg()};
@@ -1834,7 +1872,7 @@ function renderNavIcons(){if(window.lucide&&typeof window.lucide.createIcons==='
   function addCard(it) {
     it.domain = DOMAIN; LIB.push(it);
     if (typeof grid === "undefined") return;
-    if(readLibStore(LIB_DELETED_KEY).includes(it.id))return;
+    if(libraryManifest.deletedIds.includes(it.id))return;
     addLibraryCard(it);
   }
   const scene = (o) => () => addScene(o);
