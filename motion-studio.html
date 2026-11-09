@@ -109,7 +109,7 @@ nav button:active{transform:scale(.94)}
 .subhead{font-size:11px;color:#8f929c;text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px}
 .empty-state{text-align:center;padding:36px 18px;color:#92949c;border:1px dashed rgba(255,255,255,.15);border-radius:18px}
 .asset-remove{position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:10px;background:#17181d;color:#fff;border:1px solid #555}
-@media(max-width:420px){body{padding-left:12px;padding-right:12px}nav{width:96vw;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}nav button{font-size:9px}.choice-grid{grid-template-columns:1fr}.lib-tools{grid-template-columns:1fr}}
+@media(max-width:560px){body{padding-left:12px;padding-right:12px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}nav{width:calc(100vw - 20px);max-width:560px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);gap:2px;padding:7px 6px;border-radius:21px}nav button{min-width:0;min-height:52px;padding:5px 1px;gap:4px;font-size:clamp(8px,2.45vw,10px);line-height:1.05;white-space:normal;overflow-wrap:anywhere;text-align:center}nav button svg{width:18px;height:18px;flex:0 0 auto}nav button span{display:block;max-width:100%;overflow-wrap:anywhere}.choice-grid{grid-template-columns:1fr}.lib-tools{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
 </style>
@@ -684,7 +684,7 @@ LIB.forEach(it=>{it.domain=libraryDomain(it)});
 let S=null;
 function norm(j,tot){
   if(!j||!Array.isArray(j.scenes)||!j.scenes.length)throw new Error('в сценарии нет сцен');
-  const total=tot||ui.dur,pal=PAL[ui.style]||PAL.neon;
+  const total=tot||ui.dur,pal=(ui.palette&&ui.palette.length===3?ui.palette:PAL[ui.style]||PAL.neon).slice();
   const sc=j.scenes.slice(0,16).map((s,i)=>({
     dur:clamp(+s.dur||4,1.2,15),bg:BG.includes(s.bg)?s.bg:BG[i%3],trans:TR.includes(s.trans)?s.trans:TR[i%4],sfx:(Array.isArray(s.sfx)?s.sfx:[]).slice(0,6).filter(x=>x&&SFX[x.id]).map(x=>({at:clamp(+x.at||0,0,10),id:x.id})),
     layers:(Array.isArray(s.layers)?s.layers:[]).slice(0,6).map(L=>{
@@ -834,9 +834,9 @@ async function ai(user,sys,mx){
 async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return norm(await ai(u))}catch(e){err=e.message;u=user+'\n\nПрошлый ответ не подошёл: '+err+'. Верни корректный JSON.'}}throw new Error(err)}
 
 /* ================= AUDIO ================= */
-let AC,DEST,effectNodes=[],audioMonitor=null;
+let AC,DEST,RECDEST,effectNodes=[];
 let voiceBuffer=null,voiceNode=null;
-function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination();audioMonitor=document.createElement('audio');audioMonitor.autoplay=false;audioMonitor.playsInline=true;audioMonitor.setAttribute('playsinline','');audioMonitor.preload='none';audioMonitor.srcObject=DEST.stream}if(audioMonitor&&audioMonitor.paused){const p=audioMonitor.play();if(p&&p.catch)p.catch(()=>{})}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
+function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();RECDEST=AC.createMediaStreamDestination();DEST=AC.createGain();DEST.gain.value=1;DEST.connect(AC.destination);DEST.connect(RECDEST)}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
 function stopEffects(){effectNodes.forEach(o=>{try{o.stop()}catch(e){}});effectNodes=[]}
 function stopVoice(){if(voiceNode){try{voiceNode.stop()}catch(e){}voiceNode=null}}
 function stopAudio(){stopEffects();stopVoice()}
@@ -942,7 +942,7 @@ function play(){
   catch(e){say('Не удалось включить звук: '+e.message,1)}
 }
 function pause(){
-  playing=false;lastSoundScene=-1;stopAudio();if(audioMonitor)audioMonitor.pause();
+  playing=false;lastSoundScene=-1;stopAudio();
   $('#pp').textContent='Играть';
 }
 function loop(now){
@@ -959,7 +959,7 @@ async function startRec(){
   pause();
   try{await ensureAudio();if(AC.state==='suspended')await AC.resume()}catch(e){return say('Не удалось подготовить звук для записи: '+e.message,1)}
   t=0;
-  const cs=cv.captureStream(30);DEST.stream.getAudioTracks().forEach(a=>cs.addTrack(a));
+  const cs=cv.captureStream(30);RECDEST.stream.getAudioTracks().forEach(a=>cs.addTrack(a));
   const mime=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
   const chunks=[];rec=new MediaRecorder(cs,mime?{mimeType:mime,videoBitsPerSecond:6e6}:{videoBitsPerSecond:6e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
@@ -1155,7 +1155,7 @@ $('#assetUpload').addEventListener('change',e=>{[...e.target.files||[]].forEach(
 try{JSON.parse(localStorage.getItem('ms_custom_assets')||'[]').forEach(renderCustomAsset)}catch(e){}
 $('#fontChoice').addEventListener('change',e=>{ui.font=e.target.value;FONT='"'+e.target.value+'", Inter, sans-serif';document.fonts&&document.fonts.load('700 24px "'+e.target.value+'"').then(()=>frame())});
 ['#color1','#color2','#color3'].forEach((id,i)=>$(id).addEventListener('input',()=>{ui.palette=ui.palette||['#08090d','#e9edf5','#ffffff'];ui.palette[i]=$(id).value;if(S){S.pal=ui.palette.slice();frame()}$('#paletteStatus').textContent='Пользовательская палитра применена'}));
-$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),img=$('#logoPreview');img.src=url;$('#logoPreviewWrap').style.display='flex';img.onload=()=>{try{const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});c.width=img.naturalWidth;c.height=img.naturalHeight;x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data,counts={};for(let i=0;i<d.length;i+=Math.max(4,Math.floor(d.length/5000/4)*4)){if(d[i+3]<100)continue;const r=Math.round(d[i]/32)*32,g=Math.round(d[i+1]/32)*32,b=Math.round(d[i+2]/32)*32,k=[r,g,b].map(v=>Math.min(255,v).toString(16).padStart(2,'0')).join('');counts[k]=(counts[k]||0)+1}const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>'#'+k);while(top.length<3)top.push('#ffffff');setPalette(['#08090d',top[0],top[1]||'#ffffff']);$('#paletteStatus').textContent='Цвета извлечены из логотипа'}catch(err){$('#paletteStatus').textContent='Не удалось извлечь цвета — выберите вручную'}}});
+$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),img=$('#logoPreview');img.src=url;$('#logoPreviewWrap').style.display='flex';img.onload=()=>{try{const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});c.width=img.naturalWidth;c.height=img.naturalHeight;x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data,counts={};for(let i=0;i<d.length;i+=Math.max(4,Math.floor(d.length/5000/4)*4)){if(d[i+3]<100)continue;const r=Math.round(d[i]/32)*32,g=Math.round(d[i+1]/32)*32,b=Math.round(d[i+2]/32)*32,k=[r,g,b].map(v=>Math.min(255,v).toString(16).padStart(2,'0')).join('');counts[k]=(counts[k]||0)+1}const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>'#'+k);while(top.length<3)top.push('#ffffff');const lum=h=>{const n=parseInt(h.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;return .2126*r+.7152*g+.0722*b};const vivid=h=>{const n=parseInt(h.slice(1),16),v=[n>>16&255,n>>8&255,n&255],mx=Math.max(...v),mn=Math.min(...v);return mx?(mx-mn)/mx:0};const accent=top.slice().sort((a,b)=>vivid(b)-vivid(a))[0]||top[0];const light=top.slice().sort((a,b)=>lum(b)-lum(a))[0]||'#ffffff';setPalette(['#08090d',accent,light]);$('#paletteStatus').textContent='Цвета извлечены из логотипа и применяются к видео'}catch(err){$('#paletteStatus').textContent='Не удалось извлечь цвета — выберите вручную'}}});
 $('#clearLogo').onclick=()=>{$('#logoFile').value='';$('#logoPreviewWrap').style.display='none'};
 function collectAllowed(){const groups={};['animChoices','objectChoices'].forEach(id=>{groups[id]=[...$('#'+id).querySelectorAll('input')].filter(x=>x.checked).map(x=>x.value)});ui.allowed=groups}
 $('#animChoices input,#objectChoices input').forEach(x=>x.addEventListener('change',collectAllowed));collectAllowed();
