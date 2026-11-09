@@ -109,6 +109,7 @@ nav button:active{transform:scale(.94)}
 .subhead{font-size:11px;color:#8f929c;text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px}
 .empty-state{text-align:center;padding:36px 18px;color:#92949c;border:1px dashed rgba(255,255,255,.15);border-radius:18px}
 .asset-remove{position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:10px;background:#17181d;color:#fff;border:1px solid #555}
+.lib-card{display:flex;flex-direction:column;min-width:0;cursor:default}.lib-card-main{display:block;width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:0;cursor:pointer;font:inherit}.lib-card-main canvas{width:100%;display:block;aspect-ratio:16/9;background:#000}.lib-card-actions{display:flex;gap:7px;padding:8px}.lib-card-actions button{flex:1;min-width:0;padding:9px 6px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#f5f5f7;font:600 11px Inter,sans-serif}.lib-card-actions button.delete{color:#ffaaa5;border-color:rgba(255,100,100,.3)}#customCodeInput{min-height:150px;font:12px/1.5 ui-monospace,SFMono-Regular,monospace;white-space:pre;overflow:auto}
 @media(max-width:560px){body{padding-left:12px;padding-right:12px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 116px)}nav{left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:none;width:auto;max-width:none;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:7px 5px;border-radius:21px}nav button{width:100%;min-width:0;min-height:56px;padding:5px 0;gap:4px;font-size:clamp(8px,2.6vw,10px);line-height:1.1;letter-spacing:-.02em;white-space:normal;overflow-wrap:anywhere;text-align:center}nav button svg{width:19px;height:19px;flex:0 0 auto}nav button span{display:block;width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-align:center}.choice-grid{grid-template-columns:1fr}.lib-tools{grid-template-columns:1fr}}@media(max-width:370px){nav{left:6px;right:6px;padding:6px 3px;gap:1px}nav button{font-size:8px;min-height:54px}nav button svg{width:17px;height:17px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
@@ -186,7 +187,7 @@ nav button:active{transform:scale(.94)}
 <section id="t-lib">
   <p class="subhead">02 / ассеты</p><div class="panel"><div class="panel-title">Моя библиотека</div><p class="note">Добавляйте собственные изображения в библиотеку и удаляйте их в любой момент.</p><input id="assetUpload" type="file" accept="image/*" multiple><div id="customAssets" class="grid"></div></div>
   <div class="lib-tools"><input id="q" type="search" placeholder="Поиск по элементам библиотеки"><select id="catfilter" aria-label="Фильтр библиотеки"><option value="">Все направления</option></select></div>
-  <p class="note" id="libcount">Все элементы библиотеки</p><div class="grid" id="grid"></div>
+  <p class="note" id="libcount">Все элементы библиотеки</p><div class="panel" id="customCodePanel"><div class="panel-title">Добавить свой элемент по коду</div><p class="note">Вставьте JSON сцены или скопированный код элемента. Он сохранится в библиотеке на этом устройстве.</p><input id="customCodeName" placeholder="Название элемента (необязательно)"><textarea id="customCodeInput" rows="5" spellcheck="false" placeholder='{"dur":4,"bg":"gradient","layers":[{"type":"text","text":"Мой элемент","y":0.5,"size":0.1}]}'></textarea><button class="btn" id="addCustomCode" type="button" style="margin-top:9px">Добавить в библиотеку</button><p class="note" id="customCodeStatus" aria-live="polite"></p></div><div class="grid" id="grid"></div>
 </section>
 <section id="t-saved"><p class="subhead">03 / история</p><div class="panel"><div class="panel-title">Сохранённые запросы</div><p class="note">Здесь автоматически сохраняются ваши запросы и параметры созданных проектов на этом устройстве.</p><div id="savedList"></div></div></section>
 <section id="t-ideas"><p class="subhead">04 / вдохновение</p><div class="empty-state"><span data-lucide="lightbulb" style="width:30px;height:30px"></span><p><b>Идеи скоро появятся</b></p><p>Подборки концепций и готовые направления для видео.</p></div></section>
@@ -1127,11 +1128,27 @@ $$( '.seg[data-k]' ).forEach(g=>g.onclick=e=>{const b=e.target.closest('button')
 const navRoot=$('nav');if(navRoot)navRoot.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b||!navRoot.contains(b))return;const target=b.dataset.t;if(!$(`#${target}`))return;$$('nav button[data-t]').forEach(x=>x.classList.toggle('on',x===b));$$('section').forEach(s=>s.classList.toggle('on',s.id===target));if(target==='t-saved')renderSaved();renderNavIcons()});
 /* библиотека */
 const grid=$('#grid'),io=new IntersectionObserver(es=>es.forEach(e=>e.target._v=e.isIntersecting));
-LIB.forEach(it=>{const b=document.createElement('button');b.className='card';b.dataset.s=(it.cat+' '+it.name+' '+it.tags).toLowerCase();
-  b.innerHTML=`<canvas width="320" height="180"></canvas><b>${it.name}</b><small>${it.domain}</small>`;
-  it.cv=b.querySelector('canvas');it.sc=it.mk();it.el=b;
-  b.onclick=()=>{if(it.act)return it.act();if(FX.concat(BG,TR,CH).includes(it.id)){const d=$('#desc');d.value=(d.value+' ['+it.id+']').trim();say('Метка ['+it.id+'] добавлена в описание.')}};
-  grid.appendChild(b);io.observe(b)});
+const LIB_CUSTOM_KEY='ms_custom_library_v1',LIB_DELETED_KEY='ms_deleted_library_v1';
+function readLibStore(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
+function saveLibStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}}
+function libraryItemCode(it){return JSON.stringify({format:'motion-studio-library-item',version:1,name:it.name||'Мой элемент',cat:it.cat||'Мой код',scene:it.mk()},null,2)}
+function addLibraryCard(it){
+ const b=document.createElement('div');b.className='card lib-card';b.dataset.s=(it.cat+' '+it.name+' '+(it.tags||'')).toLowerCase();
+ const main=document.createElement('button');main.type='button';main.className='lib-card-main';main.innerHTML='<canvas width="320" height="180"></canvas>';
+ const title=document.createElement('b');title.textContent=it.name;const meta=document.createElement('small');meta.textContent=it.domain||it.cat;main.append(title,meta);
+ it.cv=main.querySelector('canvas');it.sc=it.mk();it.el=b;
+ main.addEventListener('click',()=>{if(it.act)return it.act();if(FX.concat(BG,TR,CH).includes(it.id)){const d=$('#desc');d.value=(d.value+' ['+it.id+']').trim();say('Метка ['+it.id+'] добавлена в описание.')}else if(it.customScene)addScene(it.customScene)});
+ const actions=document.createElement('div');actions.className='lib-card-actions';
+ const copy=document.createElement('button');copy.type='button';copy.textContent='Копировать код';copy.addEventListener('click',async()=>{const code=libraryItemCode(it);try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(code);say('Код «'+it.name+'» скопирован')}else{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();say(ok?'Код скопирован':'Не удалось скопировать код',!ok)}}catch(e){say('Не удалось скопировать код. Попробуйте ещё раз.',1)}});
+ const del=document.createElement('button');del.type='button';del.className='delete';del.textContent='Удалить';del.addEventListener('click',()=>{if(!confirm('Удалить «'+it.name+'» из библиотеки на этом устройстве?'))return;if(it.custom){const items=readLibStore(LIB_CUSTOM_KEY).filter(x=>x.id!==it.id);if(!saveLibStore(LIB_CUSTOM_KEY,items)){say('Не удалось сохранить изменения',1);return}}else{const ids=readLibStore(LIB_DELETED_KEY);if(!ids.includes(it.id))ids.push(it.id);if(!saveLibStore(LIB_DELETED_KEY,ids)){say('Не удалось сохранить изменения',1);return}}b.remove();const ix=LIB.indexOf(it);if(ix>=0)LIB.splice(ix,1);filt()});
+ actions.append(copy,del);b.append(main,actions);grid.append(b);io.observe(b);return b
+}
+function restoreCustomLibrary(){readLibStore(LIB_CUSTOM_KEY).forEach(x=>{try{const sc=x.scene;if(!sc||!Array.isArray(sc.layers))return;const it={id:x.id,cat:x.cat||'Мой код',name:x.name||'Мой элемент',tags:x.tags||'пользовательский код',domain:x.domain||'Общие элементы',custom:true,customScene:sc,mk:()=>sc,act:()=>addScene(sc)};LIB.push(it);addLibraryCard(it)}catch(e){}})}
+function addCustomLibraryFromCode(){const status=$('#customCodeStatus');try{const raw=$('#customCodeInput').value.trim();if(!raw)throw Error('Вставьте JSON-код элемента.');const parsed=JSON.parse(raw);let scene=parsed.scene||parsed;if(parsed.scenes&&Array.isArray(parsed.scenes))scene=parsed.scenes[0];if(!scene||typeof scene!=='object'||!Array.isArray(scene.layers))throw Error('Не найден массив layers. Вставьте JSON сцены или код, скопированный из библиотеки.');if(scene.layers.length>30)throw Error('В одном элементе допускается не более 30 слоёв.');const name=($('#customCodeName').value.trim()||parsed.name||'Мой элемент').slice(0,80),cat=(parsed.cat||'Мой код').slice(0,40);const clean={dur:Math.max(1,Math.min(15,Number(scene.dur)||4)),bg:BG.includes(scene.bg)?scene.bg:'gradient',trans:TR.includes(scene.trans)?scene.trans:'fade',sfx:Array.isArray(scene.sfx)?scene.sfx.slice(0,6):[],layers:scene.layers.slice(0,30)};const item={id:'custom_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),name,cat,tags:'пользовательский код '+name.toLowerCase(),domain:'Общие элементы',scene:clean};const items=readLibStore(LIB_CUSTOM_KEY);items.push(item);if(!saveLibStore(LIB_CUSTOM_KEY,items))throw Error('Не удалось сохранить элемент. Возможно, хранилище браузера заполнено.');const it={...item,custom:true,customScene:clean,mk:()=>clean,act:()=>addScene(clean)};LIB.push(it);addLibraryCard(it);$('#customCodeInput').value='';$('#customCodeName').value='';status.textContent='Элемент «'+name+'» добавлен в библиотеку.';filt()}catch(e){status.textContent=e.message||'Не удалось добавить элемент.';say(status.textContent,1)}}
+$('#addCustomCode').addEventListener('click',addCustomLibraryFromCode);
+restoreCustomLibrary();
+const deletedLibraryIds=new Set(readLibStore(LIB_DELETED_KEY));
+LIB.filter(it=>!deletedLibraryIds.has(it.id)).forEach(it=>addLibraryCard(it));
 function libFrame(ts){LIB.forEach(it=>{if(it.el.style.display==='none'||!it.el._v)return;const c=it.cv.getContext('2d'),lt=ts%(it.sc.dur);drawScene(c,320,180,{...it.sc,dur:99},lt,PAL.neon)})}
 let cat='',qs='';
 const catFilter=$('#catfilter');
@@ -1771,10 +1788,8 @@ function renderNavIcons(){if(window.lucide&&typeof window.lucide.createIcons==='
   function addCard(it) {
     it.domain = DOMAIN; LIB.push(it);
     if (typeof grid === "undefined") return;
-    const b = document.createElement("button"); b.className = "card"; b.dataset.s = (it.cat + " " + it.name + " " + it.tags).toLowerCase();
-    b.innerHTML = `<canvas width="320" height="180"></canvas><b>${it.name}</b><small>${it.domain}</small>`;
-    it.cv = b.querySelector("canvas"); it.sc = it.mk(); it.el = b; b.onclick = () => it.act && it.act();
-    grid.appendChild(b); if (typeof io !== "undefined") io.observe(b);
+    if(readLibStore(LIB_DELETED_KEY).includes(it.id))return;
+    addLibraryCard(it);
   }
   const scene = (o) => () => addScene(o);
 
