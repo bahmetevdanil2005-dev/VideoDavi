@@ -3,5 +3,14 @@
   "deletedIds": [
     "grid"
   ],
-  "customItems": []
+  "customItems": [
+    {
+      "id": "html_mw9iloi1_oh6ih",
+      "name": "Сетка",
+      "cat": "HTML / CSS / JS",
+      "tags": "html css javascript веб-код сетка",
+      "domain": "Общие элементы",
+      "rawCode": "<!DOCTYPE html>\n<html lang=\"ru\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Анимированный фон - Мелкая сетка</title>\n    <style>\n        /* Сбрасываем отступы и делаем фон на весь экран */\n        body, html {\n            margin: 0;\n            padding: 0;\n            width: 100%;\n            height: 100%;\n            overflow: hidden; /* Убираем полосы прокрутки */\n            background-color: #050505; /* Почти черный цвет */\n        }\n\n        .grid-container {\n            width: 100vw;\n            height: 100vh;\n            \n            /* Создаем сетку с помощью двух линейных градиентов */\n            background-image: \n                /* Вертикальные линии */\n                linear-gradient(to right, rgba(255, 255, 255, 0.15) 1px, transparent 1px),\n                /* Горизонтальные линии */\n                linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 1px);\n            \n            /* УМЕНЬШИЛИ РАЗМЕР ЯЧЕЙКИ: теперь 20px на 20px */\n            background-size: 20px 20px; \n            \n            /* Запускаем анимацию */\n            animation: moveGrid 1.5s linear infinite; /* Чуть ускорил, чтобы мелкая сетка смотрелась динамичнее */\n        }\n\n        /* Ключевые кадры для движения вниз */\n        @keyframes moveGrid {\n            0% {\n                background-position: 0 0;\n            }\n            100% {\n                /* Сдвигаем ровно на высоту одной ячейки (20px), чтобы не было рывков */\n                background-position: 0 20px; \n            }\n        }\n    </style>\n</head>\n<body>\n\n    <!-- Контейнер для сетки -->\n    <div class=\"grid-container\"></div>\n\n    <script>\n        console.log(\"Фон с мелкой сеткой запущен!\");\n    </script>\n\n</body>\n</html>"
+    }
+  ]
 }
