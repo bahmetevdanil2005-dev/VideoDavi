@@ -836,7 +836,7 @@ async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return n
 /* ================= AUDIO ================= */
 let AC,DEST,RECDEST,effectNodes=[];
 let voiceBuffer=null,voiceNode=null;
-function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();RECDEST=AC.createMediaStreamDestination();DEST=AC.createGain();DEST.gain.value=1;DEST.connect(AC.destination);DEST.connect(RECDEST)}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
+function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx({latencyHint:'interactive'});RECDEST=AC.createMediaStreamDestination();DEST=AC.createGain();DEST.gain.value=1;DEST.connect(AC.destination);DEST.connect(RECDEST)}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
 function stopEffects(){effectNodes.forEach(o=>{try{o.stop()}catch(e){}});effectNodes=[]}
 function stopVoice(){if(voiceNode){try{voiceNode.stop()}catch(e){}voiceNode=null}}
 function stopAudio(){stopEffects();stopVoice()}
@@ -933,15 +933,25 @@ function play(){
   playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';
   try{
     const ready=ensureAudio();
-    ready.then(()=>AC.state==='suspended'?AC.resume():undefined).then(()=>{
+    // iOS Safari/Chrome requires an audio source to be started in the actual tap gesture.
+    if(AC&&AC.state!=='running'){
+      const unlock=AC.createBufferSource(),silent=AC.createGain();
+      unlock.buffer=AC.createBuffer(1,1,AC.sampleRate);silent.gain.value=0;
+      unlock.connect(silent);silent.connect(AC.destination);unlock.start(0);
+    }
+    const resumed=AC.state==='suspended'?AC.resume():ready;
+    Promise.resolve(resumed).then(()=>{
       if(!playing)return;
-      if(AC.state!=='running')throw new Error('Браузер не разрешил воспроизведение аудио. Нажмите «Играть» ещё раз.');
+      if(AC.state!=='running')throw new Error('iPhone не разрешил запуск звука. Проверьте беззвучный режим и нажмите «Играть» ещё раз.');
       lastSoundScene=sceneIndexAt(t);
-      scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));
-      if(voiceBuffer)startVoiceAt(t);
-      say('Звук включён · AudioContext '+AC.state+(voiceBuffer?' · голос '+Math.round(voiceBuffer.duration)+' сек.':''),0);
+      return music(t).then(()=>{
+        if(!playing)return;
+        scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));
+        if(voiceBuffer)startVoiceAt(t);
+        say('Звук включён · '+AC.state+(voiceBuffer?' · голос '+Math.round(voiceBuffer.duration)+' сек.':''),0);
+      });
     }).catch(e=>{say('Звук не запустился: '+e.message,1);console.error('Motion Studio audio:',e,AC&&AC.state)});
-  }catch(e){say('Не удалось включить звук: '+e.message,1)}
+  }catch(e){say('Не удалось включить звук: '+e.message,1);console.error('Motion Studio audio:',e)}
 }
 function pause(){
   playing=false;lastSoundScene=-1;stopAudio();
