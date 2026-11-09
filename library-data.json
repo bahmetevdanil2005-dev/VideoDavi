@@ -2,7 +2,8 @@
   "version": 1,
   "deletedIds": [
     "grid",
-    "particles"
+    "particles",
+    "speed"
   ],
   "customItems": [
     {
