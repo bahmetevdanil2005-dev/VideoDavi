@@ -728,9 +728,9 @@ async function ai(user,sys,mx){
 async function aiRetry(user){let err='',u=user;for(let i=0;i<3;i++){try{return norm(await ai(u))}catch(e){err=e.message;u=user+'\n\nПрошлый ответ не подошёл: '+err+'. Верни корректный JSON.'}}throw new Error(err)}
 
 /* ================= AUDIO ================= */
-let AC,DEST,effectNodes=[];
+let AC,DEST,effectNodes=[],audioMonitor=null;
 let voiceBuffer=null,voiceNode=null;
-function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination()}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
+function ensureAudio(){if(!AC){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error('Web Audio API не поддерживается этим браузером');AC=new Ctx();DEST=AC.createMediaStreamDestination();audioMonitor=document.createElement('audio');audioMonitor.autoplay=false;audioMonitor.playsInline=true;audioMonitor.setAttribute('playsinline','');audioMonitor.preload='none';audioMonitor.srcObject=DEST.stream}if(audioMonitor&&audioMonitor.paused){const p=audioMonitor.play();if(p&&p.catch)p.catch(()=>{})}if(AC.state==='suspended'&&!AC.startRendering)return AC.resume();return Promise.resolve()}
 function stopEffects(){effectNodes.forEach(o=>{try{o.stop()}catch(e){}});effectNodes=[]}
 function stopVoice(){if(voiceNode){try{voiceNode.stop()}catch(e){}voiceNode=null}}
 function stopAudio(){stopEffects();stopVoice()}
@@ -741,7 +741,7 @@ function startVoiceAt(sec){
   if(offset>=voiceBuffer.duration-.02)return;
   const src=AC.createBufferSource(),gain=AC.createGain();
   src.buffer=voiceBuffer;gain.gain.value=1.5;
-  src.connect(gain);gain.connect(AC.destination);gain.connect(DEST);
+  src.connect(gain);gain.connect(DEST);
   src.onended=()=>{if(voiceNode===src)voiceNode=null};
   voiceNode=src;src.start(0,offset);
 }
@@ -788,7 +788,7 @@ function sceneIndexAt(sec){if(!S)return -1;for(let i=0;i<S.scenes.length;i++)if(
 function transitionSound(index,at){
   if(!AC||!S||index<=0)return;
   const tr=S.scenes[index].trans||'cut',kind=/fade|dissolve/i.test(tr)?'soft':/flash|wipe|slide|push|split|blinds|circle|twirl|zoom|slideup|glitch/i.test(tr)?'whoosh':'tap';
-  const t0=at==null?AC.currentTime+.015:at,g=AC.createGain();g.gain.value=.8;g.connect(AC.destination);g.connect(DEST);
+  const t0=at==null?AC.currentTime+.015:at,g=AC.createGain();g.gain.value=.8;g.connect(DEST);
   const dur=kind==='soft'?.42:kind==='whoosh'?.28:.12,count=Math.ceil(AC.sampleRate*dur),buf=AC.createBuffer(1,count,AC.sampleRate),data=buf.getChannelData(0);
   for(let i=0;i<count;i++){const env=kind==='soft'?Math.sin(Math.PI*i/count):kind==='whoosh'?Math.sin(Math.PI*i/count)**1.5:Math.exp(-i/(count*.12));data[i]=(Math.random()*2-1)*env}
   const src=AC.createBufferSource(),filter=AC.createBiquadFilter(),gain=AC.createGain();src.buffer=buf;filter.type=kind==='tap'?'lowpass':'bandpass';filter.frequency.setValueAtTime(kind==='tap'?1200:5200,t0);filter.frequency.exponentialRampToValueAtTime(kind==='tap'?180:650,t0+dur);filter.Q.value=kind==='tap'?.7:.8;gain.gain.setValueAtTime(kind==='soft'?.16:.32,t0);gain.gain.exponentialRampToValueAtTime(.001,t0+dur);src.connect(filter);filter.connect(gain);gain.connect(g);src.start(t0);src.stop(t0+dur+.02);effectNodes.push(src);
@@ -800,7 +800,7 @@ function music(from){
   if(AC&&AC.startRendering){schedule();return Promise.resolve()}
   return ensureAudio().then(schedule).catch(e=>{say('Не удалось включить звук переходов: '+e.message,1);throw e});
 }
-function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(AC.destination);o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);effectNodes.push(o)})}
+function sfx(id,at,g){const out=g||(()=>{const o=AC.createGain();o.gain.value=.5;o.connect(DEST);return o})();(SFX[id]||[]).forEach(([ty,a,b,len,vol,d=0])=>{const o=AC.createOscillator(),e=AC.createGain(),s0=at+d;o.type=ty;o.frequency.setValueAtTime(a,s0);o.frequency.exponentialRampToValueAtTime(b,s0+len);e.gain.setValueAtTime(vol,s0);e.gain.exponentialRampToValueAtTime(.001,s0+len);o.connect(e);e.connect(out);o.start(s0);o.stop(s0+len+.02);effectNodes.push(o)})}
 function scheduleSceneSfx(index,fromLocal){if(!AC||!S||index<0)return;const sc=S.scenes[index];if(!sc)return;const base=AC.currentTime+.025;(sc.sfx||[]).forEach(item=>{const at=Math.max(0,+item.at||0);if(at<fromLocal-.015)return;sfx(item.id,base+Math.max(0,at-fromLocal))})}
 /* ================= ENGINE ================= */
 const cv=$('#cv'),cx=cv.getContext('2d');
@@ -836,7 +836,7 @@ function play(){
   catch(e){say('Не удалось включить звук: '+e.message,1)}
 }
 function pause(){
-  playing=false;lastSoundScene=-1;stopAudio();
+  playing=false;lastSoundScene=-1;stopAudio();if(audioMonitor)audioMonitor.pause();
   $('#pp').textContent='Играть';
 }
 function loop(now){
