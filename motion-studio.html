@@ -931,7 +931,7 @@ const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
 function play(){
   if(!S)return;if(t>=S.dur-.02)t=0;
   playing=true;last=performance.now();lastSoundScene=sceneIndexAt(t);$('#pp').textContent='Пауза';
-  try{ensureAudio().then(()=>{if(AC.state==='suspended')return AC.resume()}).then(()=>{
+  try{ensureAudio().then(()=>{if(AC.state==='suspended')return AC.resume()}).then(()=>music(t)).then(()=>{
     if(playing){
       lastSoundScene=sceneIndexAt(t);
       scheduleSceneSfx(lastSoundScene,Math.max(0,t-S.scenes[lastSoundScene].start));
@@ -946,7 +946,7 @@ function pause(){
   $('#pp').textContent='Играть';
 }
 function loop(now){
-  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running'){transitionSound(si);scheduleSceneSfx(si,0)}else ensureAudio().then(()=>{transitionSound(si);scheduleSceneSfx(si,0)}).catch(e=>say('Ошибка звука перехода: '+e.message,1))}catch(e){say('Ошибка звука перехода: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
+  if(playing){t+=(now-last)/1000;last=now;const si=sceneIndexAt(t);if(si!==lastSoundScene&&lastSoundScene>=0){try{if(AC&&AC.state==='running')scheduleSceneSfx(si,0);else ensureAudio().then(()=>{if(playing)scheduleSceneSfx(si,0)}).catch(e=>say('Ошибка звука сцены: '+e.message,1))}catch(e){say('Ошибка звука сцены: '+e.message,1)}}lastSoundScene=si;if(t>=S.dur){t=S.dur-.001;pause();if(exporting)stopRec()}}
   if(!fastExp){frame();if(S){$('#sc').value=t/S.dur*1000;$('#tm').textContent=fmt(t)+' / '+fmt(S.dur)}}
   if($('#t-lib').classList.contains('on'))libFrame(now/1000);
   requestAnimationFrame(loop);
