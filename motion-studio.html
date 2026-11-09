@@ -53,55 +53,161 @@ nav button.on{color:#000;background:var(--ac)}
 .note{color:var(--mu);font-size:13px;margin-top:8px}
 @media(max-width:420px){body{padding-left:10px;padding-right:10px}.seg{gap:5px}.seg button{flex-basis:calc(50% - 5px);font-size:13px;padding:9px 5px}.ctl{gap:6px}.ctl button{min-width:76px;padding:9px 8px}nav{gap:4px;padding-left:6px;padding-right:6px}nav button{font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important}}
+
+/* PREMIUM MONOCHROME REDESIGN */
+:root{--bg:#050506;--sf:rgba(20,20,23,.82);--ln:rgba(255,255,255,.12);--ac:#f4f5f7;--tx:#f7f7f8;--mu:#92939b;--glow:rgba(220,230,255,.2);color-scheme:dark}
+html{background:#050506;scroll-behavior:smooth}
+body{max-width:100%;padding:calc(env(safe-area-inset-top,0px) + 22px) 16px calc(env(safe-area-inset-bottom,0px) + 118px);background:radial-gradient(ellipse at 50% -20%,rgba(120,130,160,.16),transparent 48%),#050506;color:var(--tx);font-family:Inter,system-ui,sans-serif}
+h1{font:800 25px/1.1 Inter,sans-serif;letter-spacing:-1.2px;margin:5px 0 24px}
+h1 i{color:#fff;text-shadow:0 0 22px rgba(255,255,255,.42)}
+section{max-width:760px;animation:pageIn .42s cubic-bezier(.2,.8,.2,1) both}
+section:not(.on){display:none}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.row{margin:16px 0 0}
+.lbl,.field-title{color:#d6d7dc;font-size:13px;font-weight:650;letter-spacing:.02em;margin:0 0 8px}
+textarea,input,select{background:rgba(23,24,28,.9);color:#f8f8fa;border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:13px 14px;box-shadow:inset 0 1px rgba(255,255,255,.035),0 8px 24px rgba(0,0,0,.16);transition:border-color .22s,box-shadow .22s,background .22s}
+textarea:focus,input:focus,select:focus{outline:0;border-color:rgba(255,255,255,.48);box-shadow:0 0 0 3px rgba(255,255,255,.07),0 0 22px rgba(210,220,255,.1)}
+textarea{min-height:100px}
+.seg{gap:8px}
+.seg button{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.12);border-radius:13px;color:#c8c9ce;padding:11px 10px;transition:all .22s}
+.seg button.on{background:linear-gradient(145deg,#f8f8fa,#cfd1d7);color:#101115;border-color:#fff;box-shadow:0 4px 22px rgba(255,255,255,.13);font-weight:750}
+.btn{background:linear-gradient(135deg,#fff,#d9dbe1);color:#090a0d;border:1px solid rgba(255,255,255,.8);border-radius:15px;box-shadow:0 8px 28px rgba(255,255,255,.09),inset 0 1px #fff;transition:transform .2s,box-shadow .2s,filter .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(255,255,255,.16)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:rgba(255,255,255,.045);color:#f3f3f5;border:1px solid rgba(255,255,255,.15);box-shadow:0 8px 24px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.05)}
+.btn:disabled{opacity:.42;transform:none}
+.stage{background:#020203;border:1px solid rgba(255,255,255,.17);border-radius:20px;box-shadow:0 18px 55px rgba(0,0,0,.48),0 0 28px rgba(190,205,255,.055);padding:4px}
+#cv{border-radius:16px;max-height:58vh}
+.ctl{padding:10px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);border-radius:16px}
+.ctl button{background:#f0f1f4;color:#090a0d;border-radius:12px}
+.card{background:linear-gradient(145deg,rgba(30,31,36,.95),rgba(13,14,17,.95));border:1px solid rgba(255,255,255,.11);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:transform .2s,border-color .2s,box-shadow .2s}
+.card:active{transform:scale(.985)}
+.card b{padding:11px 12px 0}.card small{padding:3px 12px 12px}
+.note{color:#8e9099}
+#st{padding:7px 1px;color:#bfc1c8}
+.chk{align-items:center}
+.chk input{accent-color:#fff}
+details{border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px;background:rgba(255,255,255,.025)}
+nav{position:fixed;z-index:100;left:50%;right:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);width:min(94vw,560px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px 9px;border:1px solid rgba(235,240,255,.25);border-radius:24px;background:linear-gradient(155deg,rgba(37,39,46,.92),rgba(10,11,14,.94));backdrop-filter:blur(24px) saturate(155%);-webkit-backdrop-filter:blur(24px) saturate(155%);box-shadow:0 18px 50px rgba(0,0,0,.62),0 0 26px rgba(190,205,255,.12),inset 0 1px rgba(255,255,255,.17)}
+nav:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(125deg,rgba(255,255,255,.55),rgba(255,255,255,.04) 35%,rgba(185,200,255,.34) 72%,rgba(255,255,255,.12));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+nav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:54px;padding:6px 2px;border:1px solid transparent;border-radius:16px;background:transparent;color:#a5a7b0;font:600 10px Inter,sans-serif;letter-spacing:.01em;transition:all .25s}
+nav button svg{width:19px;height:19px;stroke-width:1.8}
+nav button.on{color:#fff;background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.045));border-color:rgba(255,255,255,.15);box-shadow:0 0 20px rgba(255,255,255,.075),inset 0 1px rgba(255,255,255,.1)}
+nav button.on svg{filter:drop-shadow(0 0 6px rgba(255,255,255,.65))}
+nav button:active{transform:scale(.94)}
+.lib-tools{grid-template-columns:minmax(0,1fr) minmax(120px,.6fr)}
+#res video{border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 32px #000}
+.panel{margin:14px 0;padding:16px;border:1px solid rgba(255,255,255,.1);border-radius:19px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.panel-title{font-size:15px;font-weight:750;margin:0 0 12px;letter-spacing:-.25px}
+.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.choice{display:flex;gap:9px;align-items:center;min-height:44px;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.035);font-size:12px}
+.choice input{width:17px;height:17px;margin:0;accent-color:#fff}
+.color-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.color-pick{display:flex;gap:8px;align-items:center;font-size:12px;color:#c4c6cc}
+.color-pick input{width:42px;height:38px;padding:3px;border-radius:11px}
+.logo-preview{width:54px;height:54px;object-fit:contain;border-radius:12px;background:#111;border:1px solid #333;padding:5px}
+.subhead{font-size:11px;color:#8f929c;text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px}
+.empty-state{text-align:center;padding:36px 18px;color:#92949c;border:1px dashed rgba(255,255,255,.15);border-radius:18px}
+.asset-remove{position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:10px;background:#17181d;color:#fff;border:1px solid #555}
+@media(max-width:420px){body{padding-left:12px;padding-right:12px}nav{width:96vw;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}nav button{font-size:9px}.choice-grid{grid-template-columns:1fr}.lib-tools{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
 <h1>Motion <i>Studio</i></h1>
-
 <section id="t-create" class="on">
-  <textarea id="desc" placeholder="Опишите ролик: о чём он, для кого, какой финал. Например: Реклама VPN на 30 секунд, неон, в конце призыв подписаться. Рост выручки в 3 раза."></textarea>
-  <div class="row"><p class="lbl">Формат</p><div class="seg" data-k="format"><button data-v="9:16" class="on">9:16</button><button data-v="16:9">16:9</button><button data-v="1:1">1:1</button></div></div>
-  <div class="row"><p class="lbl">Длительность</p><div class="seg" data-k="dur"><button data-v="15">15 с</button><button data-v="30" class="on">30 с</button><button data-v="60">60 с</button></div></div>
-  <div class="row"><p class="lbl">Стиль</p><div class="seg" data-k="style"><button data-v="neon" class="on">Неон</button><button data-v="min">Минимал</button><button data-v="corp">Корпоратив</button><button data-v="game">Игровой</button><button data-v="sun">Закат</button><button data-v="ocean">Океан</button><button data-v="mono">Моно</button><button data-v="candy">Конфета</button><button data-v="forest">Лес</button><button data-v="red">Красный</button></div></div>
-  <div class="row"><p class="lbl">Тон</p><div class="seg" data-k="tone"><button data-v="auto" class="on">Авто</button><button data-v="bold">Дерзкий</button><button data-v="serious">Серьёзный</button><button data-v="friendly">Дружелюбный</button><button data-v="cinema">Кино</button></div></div>
-  <div class="row"><p class="lbl">Структура</p><div class="seg" data-k="arc"><button data-v="auto" class="on">Авто</button><button data-v="story">История</button><button data-v="list">Список</button><button data-v="qa">Вопрос-ответ</button><button data-v="ba">До и после</button></div></div>
-  <details class="row" id="adbox"><summary class="lbl" style="cursor:pointer">Реклама в конце (необязательно)</summary>
-    <input id="adn" placeholder="Название: например, DinoVPN" style="margin-top:8px">
-    <input id="adp" placeholder="Что это и чем полезно, одной фразой" style="margin-top:8px">
-    <div class="chk" style="margin-top:8px"><input type="checkbox" id="adl" checked><label for="adl">Ставить пометку «Реклама»</label></div></details>
-  <div class="row"><button class="btn" id="gen">Сгенерировать видео</button></div>
-  <div id="st"></div>
-  <div class="stage"><canvas id="cv" width="540" height="960"></canvas></div>
-  <div class="ctl"><button id="pp">Играть</button><input type="range" id="sc" min="0" max="1000" value="0" aria-label="Перемотка"><span id="tm">0:00</span></div>
-  <div class="row" style="display:flex;gap:8px;align-items:center;margin-top:8px"><button class="btn ghost" id="tts">Пересоздать голос</button><span class="note" id="tts-st">Голос создаётся автоматически вместе с видео · Fenrir</span></div>
-  <div class="row"><textarea id="edit" rows="1" placeholder="Что изменить? Например: сделай финал короче и добавь график"></textarea></div>
-  <div class="row" style="display:flex;gap:8px"><button class="btn ghost" id="apply">Применить правку</button><button class="btn" id="dl">Скачать MP4</button></div>
-  <div id="prog" style="display:none;margin-top:12px"><div style="height:8px;background:var(--sf);border-radius:6px;overflow:hidden"><div id="pb" style="height:100%;width:0;background:var(--ac)"></div></div><p class="note" id="pt"></p><button class="btn ghost" id="cx">Отменить</button></div>
-  <div id="res"></div>
-</section>
-
-<section id="t-lib">
-  <div class="lib-tools">
-    <input id="q" type="search" placeholder="Поиск по темам и элементам: здоровье, камера, график…">
-    <select id="catfilter" aria-label="Фильтр библиотеки"><option value="">Все направления</option></select>
+  <p class="subhead">01 / новый проект</p>
+  <div class="panel">
+    <div class="panel-title">О чём будет видео?</div>
+    <textarea id="desc" placeholder="Опишите тему, продукт или идею ролика. Что зритель должен понять или почувствовать?"></textarea>
   </div>
-  <p class="note" id="libcount">Все элементы библиотеки</p>
-  <div class="grid" id="grid"></div>
+  <div class="panel">
+    <div class="panel-title">1. Цветовая система</div>
+    <p class="note">Загрузите логотип — извлечём из него основные цвета. Или задайте палитру вручную.</p>
+    <div class="row"><input id="logoFile" type="file" accept="image/*"><div id="logoPreviewWrap" style="display:none;margin-top:8px;align-items:center;gap:10px"><img id="logoPreview" class="logo-preview"><span class="note">Логотип добавлен</span><button id="clearLogo" class="btn ghost" style="width:auto;min-height:36px;padding:7px 10px">Убрать</button></div></div>
+    <div class="row color-row">
+      <label class="color-pick">Основной <input type="color" id="color1" value="#08090d"></label>
+      <label class="color-pick">Акцент <input type="color" id="color2" value="#e9edf5"></label>
+      <label class="color-pick">Текст <input type="color" id="color3" value="#ffffff"></label>
+    </div>
+    <p class="note" id="paletteStatus">Чёрная основа · светлый акцент</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title">2. Шрифт видео</div>
+    <select id="fontChoice"><option value="Inter">Inter — современный</option><option value="Montserrat">Montserrat — выразительный</option><option value="Manrope">Manrope — чистый</option><option value="Space Grotesk">Space Grotesk — технологичный</option><option value="Bebas Neue">Bebas Neue — кинематографичный</option><option value="Playfair Display">Playfair Display — редакционный</option></select>
+  </div>
+  <div class="panel">
+    <div class="panel-title">3. Анимации, объекты и стили</div>
+    <p class="note">Отметьте, что разрешить использовать в ролике. Снятые варианты будут исключены.</p>
+    <p class="lbl">Анимации</p><div class="choice-grid" id="animChoices">
+      <label class="choice"><input type="checkbox" value="text" checked>Текстовая анимация</label><label class="choice"><input type="checkbox" value="motion" checked>Движение и переходы</label><label class="choice"><input type="checkbox" value="particles" checked>Частицы и свечение</label><label class="choice"><input type="checkbox" value="charts" checked>Графики и цифры</label>
+    </div>
+    <p class="lbl" style="margin-top:14px">Объекты и визуальные стили</p><div class="choice-grid" id="objectChoices">
+      <label class="choice"><input type="checkbox" value="3d" checked>3D-объекты</label><label class="choice"><input type="checkbox" value="characters" checked>Персонажи</label><label class="choice"><input type="checkbox" value="icons" checked>Иконки и фигуры</label><label class="choice"><input type="checkbox" value="abstract" checked>Абстрактные фоны</label><label class="choice"><input type="checkbox" value="minimal" checked>Минимализм</label><label class="choice"><input type="checkbox" value="cinematic" checked>Кинематографичный стиль</label>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">4. Формат и длительность</div>
+    <p class="lbl">Формат</p><div class="seg" data-k="format"><button data-v="9:16" class="on">9:16 · Shorts</button><button data-v="16:9">16:9 · YouTube</button><button data-v="1:1">1:1 · Квадрат</button></div>
+    <p class="lbl" style="margin-top:14px">Длительность</p><div class="seg" data-k="dur"><button data-v="15">15 сек</button><button data-v="30" class="on">30 сек</button><button data-v="60">60 сек</button></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">5. Тон видео</div>
+    <div class="seg" data-k="tone"><button data-v="auto" class="on">Авто</button><button data-v="bold">Энергичный</button><button data-v="serious">Серьёзный</button><button data-v="friendly">Дружелюбный</button><button data-v="cinema">Кино</button></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">6. Структура видео</div>
+    <div class="seg" data-k="arc"><button data-v="auto" class="on">Авто</button><button data-v="story">История</button><button data-v="list">Список</button><button data-v="qa">Вопрос–ответ</button><button data-v="ba">До и после</button></div>
+  </div>
+  <details class="row" id="adbox"><summary class="lbl" style="cursor:pointer">7. Реклама в конце · необязательно</summary>
+    <input id="adn" placeholder="Название продукта или бренда" style="margin-top:10px"><input id="adp" placeholder="Описание и преимущества" style="margin-top:8px"><div class="chk" style="margin-top:8px"><input type="checkbox" id="adl" checked><label for="adl">Пометка «Реклама»</label></div>
+  </details>
+  <div class="panel">
+    <div class="chk"><input type="checkbox" id="noVoice"><label for="noVoice">Сгенерировать видео без озвучки</label></div>
+    <p class="note">Если включить, видео создастся без голоса. После генерации можно будет добавить голос Fenrir отдельно.</p>
+  </div>
+  <button class="btn" id="gen">Создать видео <span data-lucide="arrow-up-right" style="display:inline-block;width:17px;height:17px;vertical-align:middle"></span></button>
+  <div id="st"></div>
+  <div class="panel">
+    <div class="panel-title">Предпросмотр</div>
+    <div class="stage"><canvas id="cv" width="540" height="960"></canvas></div>
+    <div class="ctl"><button id="pp">Играть</button><input type="range" id="sc" min="0" max="1000" value="0" aria-label="Перемотка"><span id="tm">0:00</span></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Доработка ролика</div>
+    <div class="row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn ghost" id="tts" style="flex:1">Пересоздать голос</button><span class="note" id="tts-st">Голос Fenrir · готов к созданию</span></div>
+    <div class="row"><textarea id="edit" rows="1" placeholder="Напишите, что изменить в видео…"></textarea></div>
+    <div class="row" style="display:flex;gap:8px"><button class="btn ghost" id="apply">Применить правку</button><button class="btn" id="dl">Скачать MP4</button></div>
+    <div id="prog" style="display:none;margin-top:12px"><div style="height:8px;background:var(--sf);border-radius:6px;overflow:hidden"><div id="pb" style="height:100%;width:0;background:#fff"></div></div><p class="note" id="pt"></p><button class="btn ghost" id="cx">Отменить</button></div>
+    <div id="res"></div>
+  </div>
 </section>
-
+<section id="t-lib">
+  <p class="subhead">02 / ассеты</p><div class="panel"><div class="panel-title">Моя библиотека</div><p class="note">Добавляйте собственные изображения в библиотеку и удаляйте их в любой момент.</p><input id="assetUpload" type="file" accept="image/*" multiple><div id="customAssets" class="grid"></div></div>
+  <div class="lib-tools"><input id="q" type="search" placeholder="Поиск по элементам библиотеки"><select id="catfilter" aria-label="Фильтр библиотеки"><option value="">Все направления</option></select></div>
+  <p class="note" id="libcount">Все элементы библиотеки</p><div class="grid" id="grid"></div>
+</section>
+<section id="t-saved"><p class="subhead">03 / история</p><div class="panel"><div class="panel-title">Сохранённые запросы</div><p class="note">Здесь автоматически сохраняются ваши запросы и параметры созданных проектов на этом устройстве.</p><div id="savedList"></div></div></section>
+<section id="t-ideas"><p class="subhead">04 / вдохновение</p><div class="empty-state"><span data-lucide="lightbulb" style="width:30px;height:30px"></span><p><b>Идеи скоро появятся</b></p><p>Подборки концепций и готовые направления для видео.</p></div></section>
 <section id="t-set">
-  <div class="row"><p class="lbl">Адрес Worker с Gemini (главный способ, ключ хранится на сервере)</p><input id="wk" placeholder="https://название.аккаунт.workers.dev" autocomplete="off"></div>
-  <div class="row"><p class="lbl">Запасной способ: API-ключ Anthropic (хранится только в этом браузере)</p><input id="key" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
+  <p class="subhead">05 / параметры</p>
+  <div class="row"><p class="lbl">Адрес Worker с Gemini</p><input id="wk" placeholder="https://название.аккаунт.workers.dev" autocomplete="off"></div>
+  <div class="row"><p class="lbl">Запасной API-ключ Anthropic</p><input id="key" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
   <div class="row"><p class="lbl">Модель</p><select id="model"><option value="claude-opus-5-5">Claude Opus 5.5</option><option value="claude-sonnet-5-5">Claude Sonnet 5.5</option><option value="claude-haiku-5-5">Claude Haiku 5.5</option></select></div>
   <div class="row chk"><input type="checkbox" id="loc"><label for="loc">Локальный режим без ИИ</label></div>
-  
   <div class="row"><p class="lbl">Качество экспорта</p><select id="qual"><option value="1">Быстро (540p)</option><option value="2">Full HD (1080p)</option></select></div>
-  <div class="row"><p class="lbl">Кино-эффекты (виньетка, зерно, свечение)</p><select id="post"><option value="0">Выкл</option><option value="1">Мягко</option><option value="2">Сильно</option></select></div>
-  <p class="note">Без ключа сайт собирает видео по правилам и шаблонам. С ключом ИИ сам пишет сценарий по вашему описанию. Запросы к ИИ работают, когда файл открыт со своего хостинга, например GitHub Pages.</p>
+  <div class="row"><p class="lbl">Кино-эффекты</p><select id="post"><option value="0">Выкл</option><option value="1">Мягко</option><option value="2">Сильно</option></select></div>
+  <p class="note">Настройки подключения и экспорта сохранены.</p>
 </section>
-
-<nav><button data-t="t-create" class="on">Создать</button><button data-t="t-lib">Библиотека</button><button data-t="t-set">Настройки</button></nav>
-
+<nav>
+<button data-t="t-create" class="on"><i data-lucide="clapperboard"></i><span>Создать</span></button>
+<button data-t="t-lib"><i data-lucide="layers-3"></i><span>Библиотека</span></button>
+<button data-t="t-saved"><i data-lucide="bookmark"></i><span>Сохранённые</span></button>
+<button data-t="t-ideas"><i data-lucide="sparkles"></i><span>Идеи</span></button>
+<button data-t="t-set"><i data-lucide="settings-2"></i><span>Настройки</span></button>
+</nav>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
 /* ================= CONFIG ================= */
 function autosize(el){if(!el)return;const h=el.offsetHeight;el.style.height=h+'px';requestAnimationFrame(()=>{el.style.height='auto';const next=Math.max(54,el.scrollHeight);el.style.height=next+'px'})}
@@ -112,7 +218,7 @@ const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const eo=x=>1-Math.pow(1-x,3);
 const ob=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
 const rnd=s=>{const x=Math.sin(s*127.1)*43758.5453;return x-Math.floor(x)};
-const FONT='Montserrat, Inter, sans-serif';
+let FONT='Inter, sans-serif';
 const FXE={},stg=(k,n,e)=>clamp(e*2.2-k/n*1.2),E=(id,f)=>FXE[id]=f;
 E('rise',(k,n,wi,nw,e,lt,s)=>{const q=stg(k,n,e);return{a:q,dy:(1-eo(q))*s*.9}});
 E('drop',(k,n,wi,nw,e,lt,s)=>{const q=stg(k,n,e);return{a:q>0?1:0,dy:-(1-ob(q))*s*1.4}});
@@ -168,7 +274,7 @@ const N={pop:'Всплытие',rise:'Подъём по буквам',drop:'Па
  triangle:'Треугольник',star:'Звезда',burst:'Взрыв',plus:'Плюс',hex:'Шестиугольник',diamond:'Ромб',spiral:'Спираль',dotsgrid:'Пульс точек',ring:'Кольцо',rect:'Квадрат'};
 const PAL={neon:['#000000','#c6ff00','#ffffff'],min:['#f5f5f2','#ff4d00','#111111'],corp:['#0b1d3a','#4cc9f0','#ffffff'],game:['#12002b','#ff2e97','#ffe600'],sun:['#1a0b2e','#ff9f1c','#fff3d6'],ocean:['#021b2b','#00d4ff','#e6faff'],mono:['#000000','#ffffff','#bdbdbd'],candy:['#fff0f6','#ff3d9a','#2b0a3d'],forest:['#06150c','#7dff7a','#eaffea'],red:['#0d0000','#ff2b2b','#ffffff']};
 const DIM={'9:16':[540,960],'16:9':[960,540],'1:1':[720,720]};
-const ui={format:'9:16',dur:30,style:'neon',tone:'auto',arc:'auto'};
+const ui={format:'9:16',dur:30,style:'mono',tone:'auto',arc:'auto',palette:['#08090d','#e9edf5','#ffffff'],font:'Inter'};
 const cfg={key:'',model:'claude-opus-5-5',local:false,mus:false,hud:false,q:2,post:1,worker:'',music:'energetic'};
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('ms_cfg')||'{}'))}catch(e){}
 if(!cfg.worker)cfg.worker='https://video-radar-api.bahmetevdanil2005.workers.dev';
@@ -940,7 +1046,7 @@ function addScene(sc){
   ns.start=S.dur;S.scenes.push(ns);S.dur+=ns.dur;t=ns.start;pause();play();say('Сцена добавлена в видео: всего '+S.scenes.length+', '+Math.round(S.dur)+' с.');
 }
 function setScenario(s){
-  S=s;t=0;pause();voiceBuffer=null;
+  S=s;if(ui.palette)S.pal=ui.palette.slice();t=0;pause();voiceBuffer=null;
   $('#tts-st').textContent='Сценарий обновлён · сейчас создадим голос';frame();
 }
 async function generate(user,isEdit){
@@ -953,11 +1059,12 @@ async function generate(user,isEdit){
       try{res=isEdit?await aiRetry(user):await aiDirect(user)}catch(e){say('ИИ недоступен ('+e.message+'). Собрал локальным режимом.',1);res=null}
     }
     if(!res){if(isEdit){throw new Error('правки текстом работают только с ИИ: укажите ключ в настройках')}res=norm(local(d))}
-    const fixed=review(res);S=res;setScenario(res);
-    if(cfg.worker){
+    const fixed=review(res);S=res;setScenario(res);if(!isEdit)savePromptRecord(d);
+    if(cfg.worker&&!$('#noVoice').checked){
       say('Видео готово. Создаю озвучку автоматически…');
       await createVoice();
       if(voiceBuffer)say('Видео и озвучка готовы. Нажми «Играть», чтобы прослушать.');
+    }else if($('#noVoice').checked){$('#tts-st').textContent='Видео создано без озвучки · голос можно добавить позже';say('Видео готово без озвучки.');
     }else{
       say('Видео готово. Для автоматической озвучки укажи адрес Cloudflare Worker в настройках.',1);
     }
@@ -970,7 +1077,7 @@ async function viaWorker(isEdit){
   const an=$('#adn').value.trim(),ad=an?{name:an,pitch:$('#adp').value.trim(),label:$('#adl').checked}:null;
   const base=cfg.worker.replace(/\/+$/,'');
   const body=isEdit?{scenario:{title:S.title,music:S.music,scenes:S.scenes.map(s=>({dur:+s.dur.toFixed(1),bg:s.bg,trans:s.trans,sfx:s.sfx,layers:s.layers}))},instruction:$('#edit').value.trim(),catalog}
-    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:ui.style,ad:ad?{...ad,placement:'только отдельная последняя сцена после полного содержательного объяснения темы; последние 15–20% хронометража'}:null,catalog,hint:LIBHINT+'\nТекстовая анимация обязательна: каждая основная реплика раскрывается постепенно, слово за словом, затем буквы получают короткую упругую анимацию. Если в слое есть wordTimes — синхронизируй их с аудио-таймкодами; если озвучки и таймингов пока нет — используй равномерный ритм внутри сцены, начиная сразу после старта реплики. Не показывай всю фразу одним кадром.\nОбязательный редакционный принцип: сначала полноценный разговорный образовательный сценарий с логическим развитием темы и конкретными примерами; не использовать рекламные заголовки вместо объяснения. Если рекламодатель задан — реклама только отдельным финальным блоком в последних 15–20% после вывода; до этого никаких упоминаний бренда. Если рекламодатель не задан — рекламы нет. Каждая сцена содержит естественную произносимую реплику. Основной текст всегда раскрывается постепенно по словам, а не появляется целым блоком. Визуальные слои строго иллюстрируют смысл реплики; графики и туннели не добавлять ради декора.'};
+    :{brief:descFor(),tone:ui.tone,arc:ui.arc,dur:ui.dur,format:ui.format,style:'mono',ad:ad?{...ad,placement:'только отдельная последняя сцена после полного содержательного объяснения темы; последние 15–20% хронометража'}:null,catalog,hint:LIBHINT+'\nПАЛИТРА ПОЛЬЗОВАТЕЛЯ: '+(ui.palette||[]).join(', ')+'. ШРИФТ: '+ui.font+'. РАЗРЕШЁННЫЕ АНИМАЦИИ И ОБЪЕКТЫ: '+JSON.stringify(ui.allowed||{})+'. Используй только разрешённые категории.\nТекстовая анимация обязательна: каждая основная реплика раскрывается постепенно, слово за словом, затем буквы получают короткую упругую анимацию. Если в слое есть wordTimes — синхронизируй их с аудио-таймкодами; если озвучки и таймингов пока нет — используй равномерный ритм внутри сцены, начиная сразу после старта реплики. Не показывай всю фразу одним кадром.\nОбязательный редакционный принцип: сначала полноценный разговорный образовательный сценарий с логическим развитием темы и конкретными примерами; не использовать рекламные заголовки вместо объяснения. Если рекламодатель задан — реклама только отдельным финальным блоком в последних 15–20% после вывода; до этого никаких упоминаний бренда. Если рекламодатель не задан — рекламы нет. Каждая сцена содержит естественную произносимую реплику. Основной текст всегда раскрывается постепенно по словам, а не появляется целым блоком. Визуальные слои строго иллюстрируют смысл реплики; графики и туннели не добавлять ради декора.'};
   say(isEdit?'Режиссёр вносит правку…':'Режиссёр пишет хук, удержание и связку с рекламой…');
   const r=await fetch(base+(isEdit?'/edit':'/director'),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||('ошибка '+r.status));
@@ -982,7 +1089,7 @@ function descFor(){
     ? `РЕКЛАМНЫЙ БЛОК: рекламодатель «${adName}». Описание: ${adPitch||'используй только название, не выдумывай свойства'}. Это отдельная вставка только в последних 15–20% ролика, после полного объяснения темы и вывода. До неё не упоминай рекламодателя и не рекламируй продукт.`
     : 'Рекламодатель не задан: никакой рекламы, брендов и рекламных призывов не добавляй.';
   return `ТЕМА РОЛИКА: ${topic}
-Формат ${ui.format}, длительность около ${ui.dur} секунд, стиль ${ui.style}. Тон: ${({auto:'естественный и ясный',bold:'энергичный, но содержательный',serious:'серьёзный и понятный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный, но не пафосный'})[ui.tone]}. Структура: ${({auto:'последовательное объяснение',story:'объяснение через историю',list:'последовательные пункты с пояснением',qa:'вопрос и подробный ответ',ba:'сравнение до и после'})[ui.arc]}.
+Формат ${ui.format}, длительность около ${ui.dur} секунд. Цветовая палитра: ${(ui.palette||[]).join(', ')}. Шрифт: ${ui.font}. Стиль определяется выбранными анимациями и объектами; не добавляй отдельную тему оформления. Тон: ${({auto:'естественный и ясный',bold:'энергичный, но содержательный',serious:'серьёзный и понятный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный, но не пафосный'})[ui.tone]}. Структура: ${({auto:'последовательное объяснение',story:'объяснение через историю',list:'последовательные пункты с пояснением',qa:'вопрос и подробный ответ',ba:'сравнение до и после'})[ui.arc]}.
 
 ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать короткую законченную разговорную реплику на 3–7 слов. Разбей её на отдельные слова: плеер будет показывать их последовательно с равномерным темпом. Не создавай длинные абзацы. Основная реплика визуально выделяется КАПСОМ; дополнительные подписи и числа — обычным регистром. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
 
@@ -1005,7 +1112,7 @@ $('#tts').onclick=()=>createVoice();
 $('#dl').onclick=startExport;$('#cx').onclick=()=>{cancelExp=true};
 $$('.seg[data-k]').forEach(g=>g.onclick=e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   const k=g.dataset.k;ui[k]=k==='dur'?+b.dataset.v:b.dataset.v;if(k==='format')dims();if(S&&k!=='format'){const pal=PAL[ui.style];S.pal=pal}});
-$$('nav button').forEach(b=>b.onclick=()=>{$$('nav button').forEach(x=>x.classList.toggle('on',x===b));$$('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t))});
+$('nav button').forEach(b=>b.onclick=()=>{$('nav button').forEach(x=>x.classList.toggle('on',x===b));$('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));if(b.dataset.t==='t-saved')renderSaved();if(window.lucide)lucide.createIcons()});
 /* библиотека */
 const grid=$('#grid'),io=new IntersectionObserver(es=>es.forEach(e=>e.target._v=e.isIntersecting));
 LIB.forEach(it=>{const b=document.createElement('button');b.className='card';b.dataset.s=(it.cat+' '+it.name+' '+it.tags).toLowerCase();
@@ -1036,6 +1143,21 @@ $('#loc').onchange=e=>{cfg.local=e.target.checked;saveCfg()};
 
 $('#post').value=String(cfg.post);$('#post').onchange=e=>{cfg.post=+e.target.value;saveCfg()};
 $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;saveCfg()};
+
+
+/* ===== PREMIUM UI: palette, font, saved prompts and user assets ===== */
+function setPalette(p){ui.palette=p.slice(0,3);['#color1','#color2','#color3'].forEach((id,i)=>$(id).value=ui.palette[i]);if(S){S.pal=ui.palette.slice();frame()}}
+function savePromptRecord(prompt){try{const a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]');a.unshift({id:Date.now(),prompt,format:ui.format,dur:ui.dur,tone:ui.tone,arc:ui.arc,date:new Date().toLocaleString('ru-RU')});localStorage.setItem('ms_saved_prompts',JSON.stringify(a.slice(0,50)));renderSaved()}catch(e){}}
+function renderSaved(){const box=$('#savedList');if(!box)return;let a=[];try{a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]')}catch(e){};box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-state">Пока нет сохранённых запросов</div>';return}a.forEach(x=>{const card=document.createElement('div');card.className='panel';const p=document.createElement('p');p.textContent=x.prompt;const meta=document.createElement('p');meta.className='note';meta.textContent=x.date+' · '+x.format+' · '+x.dur+' сек.';const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';const load=document.createElement('button');load.className='btn ghost';load.textContent='Использовать';load.onclick=()=>{$('#desc').value=x.prompt;ui.format=x.format;ui.dur=x.dur;$('.seg[data-k="format"] button,.seg[data-k="dur"] button').forEach(b=>b.classList.toggle('on',b.dataset.v===String(b.dataset.v==='9:16'||b.dataset.v==='16:9'||b.dataset.v==='1:1'?x.format:x.dur)));document.querySelector('[data-t="t-create"]').click()};const del=document.createElement('button');del.className='btn ghost';del.textContent='Удалить';del.onclick=()=>{const n=a.filter(v=>v.id!==x.id);localStorage.setItem('ms_saved_prompts',JSON.stringify(n));renderSaved()};row.append(load,del);card.append(p,meta,row);box.append(card)})}
+function addUploadedAsset(file){const url=URL.createObjectURL(file),card=document.createElement('div');card.className='card';card.style.position='relative';const img=document.createElement('img');img.src=url;img.style.cssText='width:100%;aspect-ratio:16/9;object-fit:contain;background:#090a0d';const name=document.createElement('b');name.textContent=file.name;const small=document.createElement('small');small.textContent='Загруженный ассет';const del=document.createElement('button');del.className='asset-remove';del.innerHTML='<i data-lucide="trash-2"></i>';del.onclick=()=>{URL.revokeObjectURL(url);card.remove()};card.append(img,name,small,del);$('#customAssets').append(card);if(window.lucide)lucide.createIcons()}
+$('#assetUpload').addEventListener('change',e=>{[...e.target.files||[]].forEach(addUploadedAsset);e.target.value=''});
+$('#fontChoice').addEventListener('change',e=>{ui.font=e.target.value;FONT='"'+e.target.value+'", Inter, sans-serif';document.fonts&&document.fonts.load('700 24px "'+e.target.value+'"').then(()=>frame())});
+['#color1','#color2','#color3'].forEach((id,i)=>$(id).addEventListener('input',()=>{ui.palette=ui.palette||['#08090d','#e9edf5','#ffffff'];ui.palette[i]=$(id).value;if(S){S.pal=ui.palette.slice();frame()}$('#paletteStatus').textContent='Пользовательская палитра применена'}));
+$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f),img=$('#logoPreview');img.src=url;$('#logoPreviewWrap').style.display='flex';img.onload=()=>{try{const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});c.width=img.naturalWidth;c.height=img.naturalHeight;x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data,counts={};for(let i=0;i<d.length;i+=Math.max(4,Math.floor(d.length/5000/4)*4)){if(d[i+3]<100)continue;const r=Math.round(d[i]/32)*32,g=Math.round(d[i+1]/32)*32,b=Math.round(d[i+2]/32)*32,k=[r,g,b].map(v=>Math.min(255,v).toString(16).padStart(2,'0')).join('');counts[k]=(counts[k]||0)+1}const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>'#'+k);while(top.length<3)top.push('#ffffff');setPalette(['#08090d',top[0],top[1]||'#ffffff']);$('#paletteStatus').textContent='Цвета извлечены из логотипа'}catch(err){$('#paletteStatus').textContent='Не удалось извлечь цвета — выберите вручную'}}});
+$('#clearLogo').onclick=()=>{$('#logoFile').value='';$('#logoPreviewWrap').style.display='none'};
+function collectAllowed(){const groups={};['animChoices','objectChoices'].forEach(id=>{groups[id]=[...$('#'+id).querySelectorAll('input')].filter(x=>x.checked).map(x=>x.value)});ui.allowed=groups}
+$('#animChoices input,#objectChoices input').forEach(x=>x.addEventListener('change',collectAllowed));collectAllowed();
+if(window.lucide)lucide.createIcons();
 
 /* ===== ВСТРОЕННЫЙ ПАК БИБЛИОТЕКИ «ЗДОРОВЬЕ» ===== */
 /* ==========================================================
