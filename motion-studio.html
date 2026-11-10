@@ -88,7 +88,7 @@ textarea{min-height:100px}
 .chk{align-items:center}
 .chk input{accent-color:#fff}
 details{border:1px solid rgba(255,255,255,.1);border-radius:15px;padding:12px;background:rgba(255,255,255,.025)}
-nav{position:fixed;z-index:100;left:50%;right:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);width:min(94vw,560px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px 9px;border:1px solid rgba(235,240,255,.25);border-radius:24px;background:linear-gradient(155deg,rgba(37,39,46,.92),rgba(10,11,14,.94));backdrop-filter:blur(24px) saturate(155%);-webkit-backdrop-filter:blur(24px) saturate(155%);box-shadow:0 18px 50px rgba(0,0,0,.62),0 0 26px rgba(190,205,255,.12),inset 0 1px rgba(255,255,255,.17)}
+nav{position:fixed;z-index:100;left:50%;right:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);width:min(94vw,560px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px 9px;border:1px solid rgba(235,240,255,.25);border-radius:24px;background:linear-gradient(155deg,rgba(37,39,46,.92),rgba(10,11,14,.94));backdrop-filter:blur(24px) saturate(155%);-webkit-backdrop-filter:blur(24px) saturate(155%);box-shadow:0 18px 50px rgba(0,0,0,.62),0 0 26px rgba(190,205,255,.12),inset 0 1px rgba(255,255,255,.17)}
 nav:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(125deg,rgba(255,255,255,.55),rgba(255,255,255,.04) 35%,rgba(185,200,255,.34) 72%,rgba(255,255,255,.12));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 nav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:54px;padding:6px 2px;border:1px solid transparent;border-radius:16px;background:transparent;color:#a5a7b0;font:600 10px Inter,sans-serif;letter-spacing:.01em;transition:all .25s}
 nav button svg{width:19px;height:19px;stroke-width:1.8}
@@ -118,56 +118,38 @@ nav button:active{transform:scale(.94)}
 <body>
 <h1>Motion <i>Studio</i></h1>
 <section id="t-create" class="on">
-  <p class="subhead">01 / новый проект</p>
+  <p class="subhead">01 / твой следующий ролик</p>
   <div class="panel">
-    <div class="panel-title">О чём будет видео?</div>
-    <textarea id="desc" placeholder="Опишите тему, продукт или идею ролика. Что зритель должен понять или почувствовать?"></textarea>
+    <div class="panel-title">Тема видео</div>
+    <p class="note">О чём ролик? Укажи мысль, вопрос или историю, которую нужно раскрыть.</p>
+    <textarea id="desc" placeholder="Например: почему мы постоянно откладываем важные решения и как это меняет нашу жизнь…" rows="3"></textarea>
   </div>
   <div class="panel">
-    <div class="panel-title">1. Цветовая система</div>
-    <p class="note">Загрузите логотип — извлечём из него основные цвета. Или задайте палитру вручную.</p>
-    <div class="row"><input id="logoFile" type="file" accept="image/*"><div id="logoPreviewWrap" style="display:none;margin-top:8px;align-items:center;gap:10px"><img id="logoPreview" class="logo-preview"><span class="note">Логотип добавлен</span><button id="clearLogo" class="btn ghost" style="width:auto;min-height:36px;padding:7px 10px">Убрать</button></div></div>
+    <div class="panel-title">Что именно ты хочешь видеть в видео?</div>
+    <p class="note">Опиши визуал своими словами: сцены, образы, действия, атмосферу, детали, метафоры и динамику. Чем конкретнее запрос — тем точнее результат.</p>
+    <textarea id="visualPrompt" placeholder="Например: начни с человека, который стоит перед огромными часами. Камера медленно приближается, цифры начинают рассыпаться, затем покажи несколько быстрых кинематографичных сцен… Что важно показать, чего избегать, какие детали добавить?" rows="6"></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Постоянный стиль Motion Studio</div>
+    <p class="note">Это визуальная основа всех роликов: тёмная премиальная картинка, чистая композиция, выразительная типографика, контрастный свет и плавная кинетическая анимация. Содержание и визуальные сцены каждый раз создаются заново по твоему промту.</p>
     <div class="row color-row">
-      <label class="color-pick">Основной <input type="color" id="color1" value="#08090d"></label>
+      <label class="color-pick">Фон <input type="color" id="color1" value="#08090d"></label>
       <label class="color-pick">Акцент <input type="color" id="color2" value="#e9edf5"></label>
       <label class="color-pick">Текст <input type="color" id="color3" value="#ffffff"></label>
     </div>
-    <p class="note" id="paletteStatus">Чёрная основа · светлый акцент</p>
+    <div class="row"><p class="lbl">Шрифт</p><select id="fontChoice"><option value="Inter">Inter — современный</option><option value="Montserrat">Montserrat — выразительный</option><option value="Manrope">Manrope — чистый</option><option value="Space Grotesk">Space Grotesk — технологичный</option><option value="Bebas Neue">Bebas Neue — кинематографичный</option><option value="Playfair Display">Playfair Display — редакционный</option></select></div>
   </div>
   <div class="panel">
-    <div class="panel-title">2. Шрифт видео</div>
-    <select id="fontChoice"><option value="Inter">Inter — современный</option><option value="Montserrat">Montserrat — выразительный</option><option value="Manrope">Manrope — чистый</option><option value="Space Grotesk">Space Grotesk — технологичный</option><option value="Bebas Neue">Bebas Neue — кинематографичный</option><option value="Playfair Display">Playfair Display — редакционный</option></select>
-  </div>
-  <div class="panel">
-    <div class="panel-title">3. Анимации, объекты и стили</div>
-    <p class="note">Отметьте, что разрешить использовать в ролике. Снятые варианты будут исключены.</p>
-    <p class="lbl">Анимации</p><div class="choice-grid" id="animChoices">
-      <label class="choice"><input type="checkbox" value="text" checked>Текстовая анимация</label><label class="choice"><input type="checkbox" value="motion" checked>Движение и переходы</label><label class="choice"><input type="checkbox" value="particles" checked>Частицы и свечение</label><label class="choice"><input type="checkbox" value="charts" checked>Графики и цифры</label>
-    </div>
-    <p class="lbl" style="margin-top:14px">Объекты и визуальные стили</p><div class="choice-grid" id="objectChoices">
-      <label class="choice"><input type="checkbox" value="3d" checked>3D-объекты</label><label class="choice"><input type="checkbox" value="characters" checked>Персонажи</label><label class="choice"><input type="checkbox" value="icons" checked>Иконки и фигуры</label><label class="choice"><input type="checkbox" value="abstract" checked>Абстрактные фоны</label><label class="choice"><input type="checkbox" value="minimal" checked>Минимализм</label><label class="choice"><input type="checkbox" value="cinematic" checked>Кинематографичный стиль</label>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">4. Формат и длительность</div>
-    <p class="lbl">Формат</p><div class="seg" data-k="format"><button data-v="9:16" class="on">9:16 · Shorts</button><button data-v="16:9">16:9 · YouTube</button><button data-v="1:1">1:1 · Квадрат</button></div>
+    <div class="panel-title">Формат ролика</div>
+    <p class="lbl">Соотношение сторон</p><div class="seg" data-k="format"><button data-v="9:16" class="on">9:16 · Shorts</button><button data-v="16:9">16:9 · YouTube</button><button data-v="1:1">1:1 · Квадрат</button></div>
     <p class="lbl" style="margin-top:14px">Длительность</p><div class="seg" data-k="dur"><button data-v="15">15 сек</button><button data-v="30" class="on">30 сек</button><button data-v="60">60 сек</button></div>
+    <p class="lbl" style="margin-top:14px">Подача</p><div class="seg" data-k="tone"><button data-v="auto" class="on">На усмотрение ИИ</button><button data-v="bold">Энергичная</button><button data-v="serious">Серьёзная</button><button data-v="friendly">Разговорная</button><button data-v="cinema">Кино</button></div>
   </div>
   <div class="panel">
-    <div class="panel-title">5. Тон видео</div>
-    <div class="seg" data-k="tone"><button data-v="auto" class="on">Авто</button><button data-v="bold">Энергичный</button><button data-v="serious">Серьёзный</button><button data-v="friendly">Дружелюбный</button><button data-v="cinema">Кино</button></div>
+    <div class="chk"><input type="checkbox" id="noVoice"><label for="noVoice">Создать без озвучки</label></div>
+    <p class="note">Голос Fenrir можно добавить после генерации.</p>
   </div>
-  <div class="panel">
-    <div class="panel-title">6. Структура видео</div>
-    <div class="seg" data-k="arc"><button data-v="auto" class="on">Авто</button><button data-v="story">История</button><button data-v="list">Список</button><button data-v="qa">Вопрос–ответ</button><button data-v="ba">До и после</button></div>
-  </div>
-  <details class="row" id="adbox"><summary class="lbl" style="cursor:pointer">7. Реклама в конце · необязательно</summary>
-    <input id="adn" placeholder="Название продукта или бренда" style="margin-top:10px"><input id="adp" placeholder="Описание и преимущества" style="margin-top:8px"><div class="chk" style="margin-top:8px"><input type="checkbox" id="adl" checked><label for="adl">Пометка «Реклама»</label></div>
-  </details>
-  <div class="panel">
-    <div class="chk"><input type="checkbox" id="noVoice"><label for="noVoice">Сгенерировать видео без озвучки</label></div>
-    <p class="note">Если включить, видео создастся без голоса. После генерации можно будет добавить голос Fenrir отдельно.</p>
-  </div>
+  <input id="adn" type="hidden" value=""><input id="adp" type="hidden" value=""><input id="adl" type="checkbox" hidden>
   <button class="btn" id="gen">Создать видео <span data-lucide="arrow-up-right" style="display:inline-block;width:17px;height:17px;vertical-align:middle"></span></button>
   <div id="st"></div>
   <div class="panel">
@@ -184,7 +166,7 @@ nav button:active{transform:scale(.94)}
     <div id="res"></div>
   </div>
 </section>
-<section id="t-lib">
+<section id="t-lib" hidden aria-hidden="true">
   <p class="subhead">02 / ассеты</p><div class="panel"><div class="panel-title">Моя библиотека</div><p class="note">Добавляйте собственные изображения в библиотеку и удаляйте их в любой момент.</p><input id="assetUpload" type="file" accept="image/*" multiple><div id="customAssets" class="grid"></div></div>
   <div class="lib-tools"><input id="q" type="search" placeholder="Поиск по элементам библиотеки"><select id="catfilter" aria-label="Фильтр библиотеки"><option value="">Все направления</option></select></div>
   <p class="note" id="libcount">Все элементы библиотеки</p><div class="panel" id="customCodePanel"><div class="panel-title">Добавить HTML / CSS / JS</div><p class="note">Вставьте готовый HTML-код. Стили добавьте в &lt;style&gt;, JavaScript — в &lt;script&gt;. Код будет запускаться только в изолированном предпросмотре.</p><input id="customCodeName" placeholder="Название элемента (необязательно)"><textarea id="customCodeInput" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="<!doctype html>\n<html>\n<head><style>body{background:#111;color:white}</style></head>\n<body><h1>Мой элемент</h1><script>/* ваш JS */</script></body>\n</html>"></textarea><button class="btn" id="addCustomCode" type="button" style="margin-top:9px">Добавить в библиотеку</button><p class="note" id="customCodeStatus" aria-live="polite"></p></div><div class="grid" id="grid"></div>
@@ -192,9 +174,9 @@ nav button:active{transform:scale(.94)}
 <section id="t-saved"><p class="subhead">03 / история</p><div class="panel"><div class="panel-title">Сохранённые запросы</div><p class="note">Здесь автоматически сохраняются ваши запросы и параметры созданных проектов на этом устройстве.</p><div id="savedList"></div></div></section>
 <section id="t-ideas"><p class="subhead">04 / вдохновение</p><div class="empty-state"><span data-lucide="lightbulb" style="width:30px;height:30px"></span><p><b>Идеи скоро появятся</b></p><p>Подборки концепций и готовые направления для видео.</p></div></section>
 <section id="t-set">
-  <p class="subhead">05 / параметры</p>
+  <p class="subhead">04 / параметры</p>
   <div class="row"><p class="lbl">Адрес Worker с Gemini</p><input id="wk" placeholder="https://название.аккаунт.workers.dev" autocomplete="off"></div>
-  <div class="row"><p class="lbl">Ключ управления библиотекой</p><input id="libAdminKey" type="password" placeholder="Секрет LIBRARY_ADMIN_KEY" autocomplete="new-password"><p class="note">Ключ действует только в этой сессии и нужен для добавления и удаления элементов.</p></div>
+  <input id="libAdminKey" type="hidden">
   <div class="row"><p class="lbl">Запасной API-ключ Anthropic</p><input id="key" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
   <div class="row"><p class="lbl">Модель</p><select id="model"><option value="claude-opus-5-5">Claude Opus 5.5</option><option value="claude-sonnet-5-5">Claude Sonnet 5.5</option><option value="claude-haiku-5-5">Claude Haiku 5.5</option></select></div>
   <div class="row chk"><input type="checkbox" id="loc"><label for="loc">Локальный режим без ИИ</label></div>
@@ -204,7 +186,6 @@ nav button:active{transform:scale(.94)}
 </section>
 <nav>
 <button data-t="t-create" class="on"><i data-lucide="clapperboard"></i><span>Создать</span></button>
-<button data-t="t-lib"><i data-lucide="layers-3"></i><span>Библиотека</span></button>
 <button data-t="t-saved"><i data-lucide="bookmark"></i><span>Сохранённые</span></button>
 <button data-t="t-ideas"><i data-lucide="sparkles"></i><span>Идеи</span></button>
 <button data-t="t-set"><i data-lucide="settings-2"></i><span>Настройки</span></button>
@@ -213,7 +194,7 @@ nav button:active{transform:scale(.94)}
 <script>
 /* ================= CONFIG ================= */
 function autosize(el){if(!el)return;const h=el.offsetHeight;el.style.height=h+'px';requestAnimationFrame(()=>{el.style.height='auto';const next=Math.max(54,el.scrollHeight);el.style.height=next+'px'})}
-function initAutosize(){['#desc','#edit'].forEach(sel=>{const el=$(sel);if(!el)return;el.addEventListener('input',()=>autosize(el));autosize(el)})}
+function initAutosize(){['#desc','#visualPrompt','#edit'].forEach(sel=>{const el=$(sel);if(!el)return;el.addEventListener('input',()=>autosize(el));autosize(el)})}
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
@@ -1072,7 +1053,7 @@ async function generate(user,isEdit){
     if(!res&&cfg.key&&!cfg.local){
       try{res=isEdit?await aiRetry(user):await aiDirect(user)}catch(e){say('ИИ недоступен ('+e.message+'). Собрал локальным режимом.',1);res=null}
     }
-    if(!res){if(isEdit){throw new Error('правки текстом работают только с ИИ: укажите ключ в настройках')}res=norm(local(d))}
+    if(!res){if(isEdit){throw new Error('правки текстом работают только с ИИ: укажите ключ в настройках')}if(cfg.local){res=norm(local(d))}else{throw new Error('Не удалось подключить ИИ. Проверьте адрес Worker или API-ключ в настройках. Локальный режим можно включить отдельно, но он не понимает творческий промт так же точно.')}}
     const fixed=review(res);S=res;setScenario(res);if(!isEdit)savePromptRecord(d);
     if(cfg.worker&&!$('#noVoice').checked){
       say('Видео готово. Создаю озвучку автоматически…');
@@ -1098,16 +1079,29 @@ async function viaWorker(isEdit){
   window.lastPlan=d.plan||null;return norm(d.scenario);
 }
 function descFor(){
-  const topic=$('#desc').value.trim(),adName=$('#adn').value.trim(),adPitch=$('#adp').value.trim();
-  const adRule=adName
-    ? `РЕКЛАМНЫЙ БЛОК: рекламодатель «${adName}». Описание: ${adPitch||'используй только название, не выдумывай свойства'}. Это отдельная вставка только в последних 15–20% ролика, после полного объяснения темы и вывода. До неё не упоминай рекламодателя и не рекламируй продукт.`
-    : 'Рекламодатель не задан: никакой рекламы, брендов и рекламных призывов не добавляй.';
-  return `ТЕМА РОЛИКА: ${topic}
-Формат ${ui.format}, длительность около ${ui.dur} секунд. Цветовая палитра: ${(ui.palette||[]).join(', ')}. Шрифт: ${ui.font}. Стиль определяется выбранными анимациями и объектами; не добавляй отдельную тему оформления. Тон: ${({auto:'естественный и ясный',bold:'энергичный, но содержательный',serious:'серьёзный и понятный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный, но не пафосный'})[ui.tone]}. Структура: ${({auto:'последовательное объяснение',story:'объяснение через историю',list:'последовательные пункты с пояснением',qa:'вопрос и подробный ответ',ba:'сравнение до и после'})[ui.arc]}.
+  const topic=$('#desc').value.trim();
+  const visual=$('#visualPrompt').value.trim();
+  return `ТЕМА И СМЫСЛ ВИДЕО:
+${topic}
 
-ОБЯЗАТЕЛЬНО: напиши полноценный разговорный сценарий, который объясняет именно эту тему. Не делай ролик из одного заголовка и случайных анимаций. Каждая сцена должна содержать короткую законченную разговорную реплику на 3–7 слов. Разбей её на отдельные слова: плеер будет показывать их последовательно с равномерным темпом. Не создавай длинные абзацы. Основная реплика визуально выделяется КАПСОМ; дополнительные подписи и числа — обычным регистром. Объясни что происходит, как это работает и приведи понятные примеры. Свяжи сцены логически, чтобы следующая мысль вытекала из предыдущей. На 30 секунд — 6–8 сцен, на 15 секунд — 4–5, на 60 секунд — 10–13. Не используй общие лозунги вместо объяснения. Не выдумывай статистику и факты. Визуальные элементы подбирай под смысл фразы, не добавляй графики и туннели ради декора.
+АВТОРСКОЕ ТВОРЧЕСКОЕ ЗАДАНИЕ — ЧТО ИМЕННО ПОКАЗАТЬ:
+${visual || 'Самостоятельно придумай сильные, разнообразные и точные визуальные сцены, которые раскрывают тему. Не используй шаблонные стоковые решения.'}
 
-${adRule}`;
+ПОСТОЯННЫЙ ФИРМЕННЫЙ СТИЛЬ:
+Тёмная премиальная эстетика, почти чёрная основа (${(ui.palette||[])[0]||'#08090d'}), светлый контрастный акцент (${(ui.palette||[])[1]||'#e9edf5'}), чистая типографика (${ui.font}), кинематографичный свет, выразительная глубина, аккуратные 3D-объекты и плавная кинетическая анимация. Высокое визуальное качество, продуманная композиция, без дешёвых шаблонов и визуального мусора. Сохраняй этот узнаваемый стиль, но не повторяй композиции и сцены между разными роликами.
+
+ПАРАМЕТРЫ:
+Формат: ${ui.format}. Длительность: около ${ui.dur} секунд. Тон: ${({auto:'выбери лучший для темы',bold:'энергичный, но содержательный',serious:'серьёзный и ясный',friendly:'дружелюбный, разговорный',cinema:'кинематографичный'})[ui.tone]||'естественный'}.
+
+ПРАВИЛА:
+- Тема определяет содержание, авторское творческое задание определяет визуальное исполнение. Не подменяй одно другим.
+- В первую очередь следуй конкретным сценам, образам, объектам, действиям и ограничениям из творческого задания.
+- Не повторяй один визуальный приём во всех сценах. Каждая сцена должна иметь собственную композицию и визуальную идею.
+- Если автор не указал точные сцены, придумай оригинальную визуальную историю, а не набор случайных эффектов.
+- Сохраняй логическую связь сцен и полноценное раскрытие темы.
+- Реплики должны быть естественными, разговорными и короткими; основная фраза раскрывается по словам.
+- Не выдумывай статистику, факты, цитаты и конкретные события.
+- Не добавляй рекламу или призывы к покупке, если этого прямо не попросили.`;
 }
 $('#gen').onclick=()=>generate(descFor(),false);
 $('#apply').onclick=()=>{const e=$('#edit').value.trim();if(!S||!e)return say('Сначала сгенерируйте видео и напишите правку.',1);
@@ -1265,8 +1259,8 @@ $('#qual').value=String(cfg.q);$('#qual').onchange=e=>{cfg.q=+e.target.value;sav
 
 /* ===== PREMIUM UI: palette, font, saved prompts and user assets ===== */
 function setPalette(p){ui.palette=p.slice(0,3);['#color1','#color2','#color3'].forEach((id,i)=>$(id).value=ui.palette[i]);if(S){S.pal=ui.palette.slice();frame()}}
-function savePromptRecord(prompt){try{const a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]');a.unshift({id:Date.now(),prompt,format:ui.format,dur:ui.dur,tone:ui.tone,arc:ui.arc,date:new Date().toLocaleString('ru-RU')});localStorage.setItem('ms_saved_prompts',JSON.stringify(a.slice(0,50)));renderSaved()}catch(e){}}
-function renderSaved(){const box=$('#savedList');if(!box)return;let a=[];try{a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]')}catch(e){};box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-state">Пока нет сохранённых запросов</div>';return}a.forEach(x=>{const card=document.createElement('div');card.className='panel';const p=document.createElement('p');p.textContent=x.prompt;const meta=document.createElement('p');meta.className='note';meta.textContent=x.date+' · '+x.format+' · '+x.dur+' сек.';const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';const load=document.createElement('button');load.className='btn ghost';load.textContent='Использовать';load.onclick=()=>{$('#desc').value=x.prompt;ui.format=x.format;ui.dur=x.dur;$$('.seg[data-k="format"] button,.seg[data-k="dur"] button').forEach(b=>b.classList.toggle('on',b.dataset.v===String(b.dataset.v==='9:16'||b.dataset.v==='16:9'||b.dataset.v==='1:1'?x.format:x.dur)));document.querySelector('[data-t="t-create"]').click()};const del=document.createElement('button');del.className='btn ghost';del.textContent='Удалить';del.onclick=()=>{const n=a.filter(v=>v.id!==x.id);localStorage.setItem('ms_saved_prompts',JSON.stringify(n));renderSaved()};row.append(load,del);card.append(p,meta,row);box.append(card)})}
+function savePromptRecord(prompt){try{const a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]');a.unshift({id:Date.now(),prompt,topic:$('#desc').value.trim(),visualPrompt:$('#visualPrompt').value.trim(),format:ui.format,dur:ui.dur,tone:ui.tone,date:new Date().toLocaleString('ru-RU')});localStorage.setItem('ms_saved_prompts',JSON.stringify(a.slice(0,50)));renderSaved()}catch(e){}}
+function renderSaved(){const box=$('#savedList');if(!box)return;let a=[];try{a=JSON.parse(localStorage.getItem('ms_saved_prompts')||'[]')}catch(e){};box.innerHTML='';if(!a.length){box.innerHTML='<div class="empty-state">Пока нет сохранённых запросов</div>';return}a.forEach(x=>{const card=document.createElement('div');card.className='panel';const p=document.createElement('p');p.textContent='Тема: '+(x.topic||x.prompt)+'\\n\\nВизуальный промт: '+(x.visualPrompt||'не задан');const meta=document.createElement('p');meta.className='note';meta.textContent=x.date+' · '+x.format+' · '+x.dur+' сек.';const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';const load=document.createElement('button');load.className='btn ghost';load.textContent='Использовать';load.onclick=()=>{$('#desc').value=x.topic||x.prompt;$('#visualPrompt').value=x.visualPrompt||'';autosize($('#desc'));autosize($('#visualPrompt'));ui.format=x.format;ui.dur=x.dur;$$('.seg[data-k="format"] button,.seg[data-k="dur"] button').forEach(b=>b.classList.toggle('on',b.dataset.v===String(b.dataset.v==='9:16'||b.dataset.v==='16:9'||b.dataset.v==='1:1'?x.format:x.dur)));document.querySelector('[data-t="t-create"]').click()};const del=document.createElement('button');del.className='btn ghost';del.textContent='Удалить';del.onclick=()=>{const n=a.filter(v=>v.id!==x.id);localStorage.setItem('ms_saved_prompts',JSON.stringify(n));renderSaved()};row.append(load,del);card.append(p,meta,row);box.append(card)})}
 function renderCustomAsset(asset){const card=document.createElement('div');card.className='card';card.style.position='relative';const img=document.createElement('img');img.src=asset.data;img.style.cssText='width:100%;aspect-ratio:16/9;object-fit:contain;background:#090a0d';const name=document.createElement('b');name.textContent=asset.name;const small=document.createElement('small');small.textContent='Мой ассет · сохранён на устройстве';const del=document.createElement('button');del.className='asset-remove';del.setAttribute('aria-label','Удалить из библиотеки');del.innerHTML='<i data-lucide="trash-2"></i>';del.onclick=()=>{let items=[];try{items=JSON.parse(localStorage.getItem('ms_custom_assets')||'[]')}catch(e){};localStorage.setItem('ms_custom_assets',JSON.stringify(items.filter(x=>x.id!==asset.id)));card.remove()};card.append(img,name,small,del);$('#customAssets').append(card);if(window.lucide)lucide.createIcons()}
 function addUploadedAsset(file){if(!file.type.startsWith('image/'))return;if(file.size>2*1024*1024){say('Файл '+file.name+' больше 2 МБ. Выберите изображение меньшего размера.',1);return}const reader=new FileReader();reader.onload=()=>{const asset={id:Date.now()+Math.random().toString(16).slice(2),name:file.name,data:String(reader.result)};try{const items=JSON.parse(localStorage.getItem('ms_custom_assets')||'[]');items.push(asset);localStorage.setItem('ms_custom_assets',JSON.stringify(items));renderCustomAsset(asset)}catch(e){say('Не удалось сохранить файл. Возможно, переполнено хранилище браузера.',1)}};reader.readAsDataURL(file)}
 $('#assetUpload').addEventListener('change',e=>{[...e.target.files||[]].forEach(addUploadedAsset);e.target.value=''});
