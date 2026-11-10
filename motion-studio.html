@@ -1223,7 +1223,7 @@ $('#addCustomCode').addEventListener('click',addCustomLibraryFromCode);
 const deletedLibraryIds=new Set(libraryManifest.deletedIds);
 for(let i=LIB.length-1;i>=0;i--)if(deletedLibraryIds.has(LIB[i].id))LIB.splice(i,1);
 LIB.forEach(it=>addLibraryCard(it));
-loadLibraryManifest();
+// User-facing asset library removed; no library manifest is loaded.
 function libFrame(ts){LIB.forEach(it=>{if(!it.cv||!it.sc||!it.el||it.el.style.display==='none'||!it.el._v)return;const c=it.cv.getContext('2d'),lt=ts%(it.sc.dur);drawScene(c,320,180,{...it.sc,dur:99},lt,PAL.neon)})}
 let cat='',qs='';
 const catFilter=$('#catfilter');
